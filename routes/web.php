@@ -2,12 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-
-/*
-|--------------------------------------------------------------------------
-| Autenticación
-|--------------------------------------------------------------------------
-*/
+use App\Http\Controllers\DashboardController;
 
 Route::middleware('guest')->group(function () {
 
@@ -20,31 +15,33 @@ Route::middleware('guest')->group(function () {
         AuthController::class,
         'login'
     ])->name('login.process');
-});
 
-/*
-|--------------------------------------------------------------------------
-| Área autenticada
-|--------------------------------------------------------------------------
-*/
+});
 
 Route::middleware('auth')->group(function () {
 
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    /*
+    |--------------------------------------------------------------------------
+    | DASHBOARD
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/dashboard', [
+        DashboardController::class,
+        'index'
+    ])->name('dashboard');
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOGOUT
+    |--------------------------------------------------------------------------
+    */
     Route::post('/logout', [
         AuthController::class,
         'logout'
     ])->name('logout');
-});
 
-/*
-|--------------------------------------------------------------------------
-| Inicio
-|--------------------------------------------------------------------------
-*/
+});
 
 Route::get('/', function () {
 

@@ -1,198 +1,370 @@
-<!DOCTYPE html>
-<html lang="es">
+@extends('layouts.app')
 
-<head>
+@section('title', 'Dashboard | CPIMuni')
 
-    <meta charset="UTF-8">
+@section('page-title', 'Dashboard')
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+@section('content')
 
-    <title>CPIMuni | Dashboard</title>
+    <div class="welcome">
 
-    <style>
+        <h2>
+            Bienvenido,
+            {{ $usuario->nombre }}
+        </h2>
 
-        body {
-            margin: 0;
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: #f4f7fa;
-            color: #172b3a;
-        }
-
-        .topbar {
-            height: 70px;
-            background: #0b3c6d;
-            color: white;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            padding: 0 30px;
-        }
-
-        .brand {
-            font-size: 23px;
-            font-weight: 800;
-        }
-
-        .user {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .logout {
-            background: rgba(255,255,255,.12);
-            border: 1px solid rgba(255,255,255,.2);
-            color: white;
-            padding: 9px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .container {
-            padding: 35px;
-        }
-
-        .welcome {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 5px 25px rgba(0,0,0,.06);
-        }
-
-        .welcome h1 {
-            margin-top: 0;
-            color: #0b3c6d;
-        }
-
-        .cards {
-            display: grid;
-            grid-template-columns:
-                repeat(auto-fit, minmax(220px, 1fr));
-
-            gap: 20px;
-            margin-top: 25px;
-        }
-
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,.05);
-        }
-
-        .card h3 {
-            color: #0b3c6d;
-        }
-
-    </style>
-
-</head>
-
-<body>
-
-<header class="topbar">
-
-    <div class="brand">
-        CPIMuni
-    </div>
-
-    <div class="user">
-
-        <span>
-            {{ auth()->user()->nombre }}
-            {{ auth()->user()->apellido }}
-        </span>
-
-        <form
-            method="POST"
-            action="{{ route('logout') }}"
-        >
-
-            @csrf
-
-            <button
-                class="logout"
-                type="submit"
-            >
-                Cerrar sesión
-            </button>
-
-        </form>
+        <p>
+            Panel principal de CPIMuni para la gestión
+            de instrumentos y organización municipal.
+        </p>
 
     </div>
 
-</header>
 
-<main class="container">
+    <div class="stats">
 
-    <section class="welcome">
+        <div class="card stat-card">
 
-        <h1>
-            Bienvenido a CPIMuni
-        </h1>
+            <div class="stat-icon">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
 
-        <p>
-            Plataforma de Gestión Municipal.
-        </p>
+            <div>
+                <div class="stat-value">
+                    {{ $municipalidad ? '1' : '0' }}
+                </div>
 
-        <p>
-            <strong>Usuario:</strong>
-            {{ auth()->user()->email }}
-        </p>
+                <div class="stat-label">
+                    Municipalidad asignada
+                </div>
+            </div>
 
-        <p>
-            <strong>Rol:</strong>
-            {{ auth()->user()->rol->nombre ?? 'Sin rol' }}
-        </p>
+        </div>
 
-        <p>
-            <strong>Municipalidad:</strong>
 
-            @if(auth()->user()->municipalidad)
+        <div class="card stat-card">
 
-                {{ auth()->user()->municipalidad->nombre }}
+            <div class="stat-icon">
+                <i class="fa-solid fa-users"></i>
+            </div>
+
+            <div>
+
+                <div class="stat-value">
+                    {{ $usuarios }}
+                </div>
+
+                <div class="stat-label">
+                    Usuarios registrados
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card stat-card">
+
+            <div class="stat-icon">
+                <i class="fa-solid fa-file-lines"></i>
+            </div>
+
+            <div>
+
+                <div class="stat-value">
+                    0
+                </div>
+
+                <div class="stat-label">
+                    Instrumentos de gestión
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card stat-card">
+
+            <div class="stat-icon">
+                <i class="fa-solid fa-folder-open"></i>
+            </div>
+
+            <div>
+
+                <div class="stat-value">
+                    0
+                </div>
+
+                <div class="stat-label">
+                    Documentos
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="dashboard-grid">
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Información institucional
+            </div>
+
+
+            @if($municipalidad)
+
+                <div class="municipality-info">
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            Municipalidad
+                        </div>
+
+                        <div class="info-value">
+                            {{ $municipalidad->nombre }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            Código de entidad
+                        </div>
+
+                        <div class="info-value">
+                            {{ $municipalidad->codigo_entidad ?? '—' }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            RUC
+                        </div>
+
+                        <div class="info-value">
+                            {{ $municipalidad->ruc ?? '—' }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            Tipo
+                        </div>
+
+                        <div class="info-value">
+                            {{ $municipalidad->tipo ?? '—' }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            Departamento
+                        </div>
+
+                        <div class="info-value">
+                            {{ $municipalidad->departamento ?? '—' }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            Provincia
+                        </div>
+
+                        <div class="info-value">
+                            {{ $municipalidad->provincia ?? '—' }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            Distrito
+                        </div>
+
+                        <div class="info-value">
+                            {{ $municipalidad->distrito ?? '—' }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-box">
+
+                        <div class="info-label">
+                            Estado
+                        </div>
+
+                        <div class="info-value">
+                            {{ $municipalidad->estado ?? '—' }}
+                        </div>
+
+                    </div>
+
+                </div>
 
             @else
 
-                Administración global CPIMuni
+                <div class="info-box">
+
+                    <div class="info-label">
+                        Estado institucional
+                    </div>
+
+                    <div class="info-value">
+                        Usuario global / sin municipalidad asignada
+                    </div>
+
+                </div>
 
             @endif
 
-        </p>
-
-    </section>
-
-    <section class="cards">
-
-        <div class="card">
-            <h3>🏛️ Municipalidad</h3>
-            <p>Información institucional.</p>
         </div>
 
-        <div class="card">
-            <h3>📋 Organización</h3>
-            <p>Órganos, unidades y puestos.</p>
-        </div>
 
         <div class="card">
-            <h3>📚 Instrumentos</h3>
-            <p>ROF, PEI, POI y otros instrumentos.</p>
+
+            <div class="card-title">
+                Accesos principales
+            </div>
+
+
+            @if(
+                auth()->user()->tienePermiso('organizacion.ver')
+                || auth()->user()->rol?->nombre === 'SUPERADMIN'
+            )
+
+                <div class="quick-item">
+
+                    <div class="quick-icon">
+                        <i class="fa-solid fa-sitemap"></i>
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Organización
+                        </strong>
+
+                        <span>
+                            Estructura orgánica
+                        </span>
+
+                    </div>
+
+                </div>
+
+            @endif
+
+
+            @if(
+                auth()->user()->tienePermiso('instrumentos.ver')
+                || auth()->user()->rol?->nombre === 'SUPERADMIN'
+            )
+
+                <div class="quick-item">
+
+                    <div class="quick-icon">
+                        <i class="fa-solid fa-file-lines"></i>
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Instrumentos
+                        </strong>
+
+                        <span>
+                            ROF, PEI, POI y otros
+                        </span>
+
+                    </div>
+
+                </div>
+
+            @endif
+
+
+            @if(
+                auth()->user()->tienePermiso('normativa.ver')
+                || auth()->user()->rol?->nombre === 'SUPERADMIN'
+            )
+
+                <div class="quick-item">
+
+                    <div class="quick-icon">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Normativa
+                        </strong>
+
+                        <span>
+                            Base normativa
+                        </span>
+
+                    </div>
+
+                </div>
+
+            @endif
+
+
+            @if(
+                auth()->user()->tienePermiso('reportes.ver')
+                || auth()->user()->rol?->nombre === 'SUPERADMIN'
+            )
+
+                <div class="quick-item">
+
+                    <div class="quick-icon">
+                        <i class="fa-solid fa-chart-column"></i>
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Reportes
+                        </strong>
+
+                        <span>
+                            Información de gestión
+                        </span>
+
+                    </div>
+
+                </div>
+
+            @endif
+
         </div>
 
-        <div class="card">
-            <h3>📊 Reportes</h3>
-            <p>Indicadores y reportes de gestión.</p>
-        </div>
+    </div>
 
-    </section>
-
-</main>
-
-</body>
-
-</html>
+@endsection
