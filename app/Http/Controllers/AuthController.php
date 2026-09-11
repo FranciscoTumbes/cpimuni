@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Usuario;
+use App\Models\Auditoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -26,6 +29,14 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        $key = strtolower($request->input('email', '')) . '|' . $request->ip();
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            throw ValidationException::withMessages([
+                'email' => 'Demasiados intentos. Espere unos minutos e inténtelo nuevamente.',
+            ]);
+        }
+
         $credenciales = $request->validate([
             'email' => [
                 'required',
@@ -52,6 +63,8 @@ class AuthController extends Controller
         */
 
         if (!$usuario) {
+            RateLimiter::hit($key, 60);
+
             return back()
                 ->withInput($request->only('email'))
                 ->withErrors([
@@ -90,6 +103,8 @@ class AuthController extends Controller
             $credenciales['password'],
             $usuario->password
         )) {
+            RateLimiter::hit($key, 60);
+
             return back()
                 ->withInput($request->only('email'))
                 ->withErrors([
@@ -104,6 +119,7 @@ class AuthController extends Controller
         */
 
         Auth::login($usuario);
+        RateLimiter::clear($key);
 
         $request->session()->regenerate();
 
@@ -117,6 +133,17 @@ class AuthController extends Controller
             'ultimo_acceso' => now(),
         ]);
 
+        Auditoria::create([
+            'municipalidad_id' => $usuario->municipalidad_id,
+            'usuario_id' => $usuario->id,
+            'tabla' => 'usuarios',
+            'registro_id' => $usuario->id,
+            'accion' => 'LOGIN',
+            'descripcion' => 'Inicio de sesión exitoso.',
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         return redirect()->intended(
             route('dashboard')
         );
@@ -127,6 +154,21 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $usuario = $request->user();
+
+        if ($usuario) {
+            Auditoria::create([
+                'municipalidad_id' => $usuario->municipalidad_id,
+                'usuario_id' => $usuario->id,
+                'tabla' => 'usuarios',
+                'registro_id' => $usuario->id,
+                'accion' => 'LOGOUT',
+                'descripcion' => 'Cierre de sesión.',
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();

@@ -491,7 +491,7 @@
                     MUNICIPALIDAD
                 </div>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('admin.municipalidades') }}" class="menu-item {{ request()->routeIs('admin.municipalidades') ? 'active' : '' }}">
                     <i class="fa-solid fa-city"></i>
                     <span>Mi Municipalidad</span>
                 </a>
@@ -508,22 +508,22 @@
                     ORGANIZACIÓN
                 </div>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('organizacion.index') }}" class="menu-item {{ request()->routeIs('organizacion.*') ? 'active' : '' }}">
                     <i class="fa-solid fa-sitemap"></i>
                     <span>Organización</span>
                 </a>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('organizacion.index') }}" class="menu-item">
                     <i class="fa-solid fa-diagram-project"></i>
                     <span>Organigrama</span>
                 </a>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('organizacion.index') }}" class="menu-item">
                     <i class="fa-solid fa-briefcase"></i>
                     <span>Puestos</span>
                 </a>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('organizacion.index') }}" class="menu-item">
                     <i class="fa-solid fa-list-check"></i>
                     <span>Funciones</span>
                 </a>
@@ -540,17 +540,17 @@
                     INSTRUMENTOS
                 </div>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('instrumentos.index') }}" class="menu-item {{ request()->routeIs('instrumentos.index') && request('tipo') === null ? 'active' : '' }}">
                     <i class="fa-solid fa-file-lines"></i>
                     <span>Instrumentos de Gestión</span>
                 </a>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('instrumentos.index', ['tipo' => 'ROF']) }}" class="menu-item {{ request()->routeIs('instrumentos.index') && request('tipo') === 'ROF' ? 'active' : '' }}">
                     <i class="fa-solid fa-book"></i>
                     <span>ROF</span>
                 </a>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('instrumentos.index', ['tipo' => 'PEI,POI']) }}" class="menu-item {{ request()->routeIs('instrumentos.index') && in_array(request('tipo'), ['PEI', 'POI', 'PEI,POI'], true) ? 'active' : '' }}">
                     <i class="fa-solid fa-bullseye"></i>
                     <span>PEI / POI</span>
                 </a>
@@ -567,7 +567,7 @@
                     NORMATIVA
                 </div>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('normativa.index') }}" class="menu-item {{ request()->routeIs('normativa.*') ? 'active' : '' }}">
                     <i class="fa-solid fa-scale-balanced"></i>
                     <span>Normativa</span>
                 </a>
@@ -615,17 +615,17 @@
                     ADMINISTRACIÓN
                 </div>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('admin.municipalidades') }}" class="menu-item {{ request()->routeIs('admin.municipalidades*') ? 'active' : '' }}">
                     <i class="fa-solid fa-building"></i>
                     <span>Municipalidades</span>
                 </a>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('admin.usuarios') }}" class="menu-item {{ request()->routeIs('admin.usuarios*') ? 'active' : '' }}">
                     <i class="fa-solid fa-users"></i>
                     <span>Usuarios</span>
                 </a>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('admin.roles') }}" class="menu-item {{ request()->routeIs('admin.roles*') ? 'active' : '' }}">
                     <i class="fa-solid fa-user-shield"></i>
                     <span>Roles y permisos</span>
                 </a>

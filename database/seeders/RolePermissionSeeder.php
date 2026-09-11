@@ -40,7 +40,10 @@ class RolePermissionSeeder extends Seeder
         $this->asignarPermisos(
             'ADMIN_MUNICIPAL',
             [
+                'dashboard.ver',
                 'municipalidades.ver',
+                'municipalidades.gestionar',
+                'usuarios.gestionar',
                 'organizacion.ver',
                 'organizacion.gestionar',
                 'funciones.ver',
@@ -66,6 +69,7 @@ class RolePermissionSeeder extends Seeder
         $this->asignarPermisos(
             'PLANEAMIENTO',
             [
+                'dashboard.ver',
                 'organizacion.ver',
                 'funciones.ver',
                 'normativa.ver',
@@ -86,6 +90,7 @@ class RolePermissionSeeder extends Seeder
         $this->asignarPermisos(
             'RECURSOS_HUMANOS',
             [
+                'dashboard.ver',
                 'organizacion.ver',
                 'organizacion.gestionar',
                 'funciones.ver',
@@ -103,6 +108,7 @@ class RolePermissionSeeder extends Seeder
         $this->asignarPermisos(
             'ASESORIA_JURIDICA',
             [
+                'dashboard.ver',
                 'normativa.ver',
                 'normativa.gestionar',
                 'instrumentos.ver',
@@ -120,6 +126,7 @@ class RolePermissionSeeder extends Seeder
         $this->asignarPermisos(
             'USUARIO',
             [
+                'dashboard.ver',
                 'organizacion.ver',
                 'funciones.ver',
                 'normativa.ver',
@@ -137,6 +144,7 @@ class RolePermissionSeeder extends Seeder
         $this->asignarPermisos(
             'CONSULTA',
             [
+                'dashboard.ver',
                 'municipalidades.ver',
                 'organizacion.ver',
                 'funciones.ver',
@@ -162,20 +170,7 @@ class RolePermissionSeeder extends Seeder
             return;
         }
 
-        foreach ($permisos as $permisoNombre) {
-
-            $permiso = Permiso::where(
-                'nombre',
-                $permisoNombre
-            )->first();
-
-            if ($permiso) {
-
-                $rol->permisos()->syncWithoutDetaching([
-                    $permiso->id
-                ]);
-
-            }
-        }
+        $ids = Permiso::whereIn('nombre', $permisos)->pluck('id');
+        $rol->permisos()->sync($ids);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Usuario extends Authenticatable
 {
@@ -55,5 +56,10 @@ class Usuario extends Authenticatable
         return $this->rol
             ? $this->rol->permisos()->where('nombre', $permiso)->exists()
             : false;
+    }
+
+    public function auditorias(): HasMany
+    {
+        return $this->hasMany(Auditoria::class);
     }
 }
