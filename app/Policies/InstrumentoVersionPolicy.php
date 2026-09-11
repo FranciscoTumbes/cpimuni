@@ -8,6 +8,30 @@ use App\Models\Usuario;
 
 class InstrumentoVersionPolicy
 {
+    public function view(Usuario $usuario, InstrumentoVersion $version): bool
+    {
+        return $usuario->rol?->nombre === 'SUPERADMIN'
+            || $version->instrumento?->municipalidad_id === $usuario->municipalidad_id;
+    }
+
+    public function create(Usuario $usuario, InstrumentoVersion $version): bool
+    {
+        return $this->view($usuario, $version)
+            && ($usuario->rol?->nombre === 'SUPERADMIN' || $usuario->tienePermiso('instrumentos.gestionar'));
+    }
+
+    public function submit(Usuario $usuario, InstrumentoVersion $version): bool
+    {
+        return $this->create($usuario, $version) && $version->usuario_id === $usuario->id;
+    }
+
+    public function observe(Usuario $usuario, InstrumentoVersion $version): bool
+    {
+        return $this->view($usuario, $version)
+            && ($usuario->rol?->nombre === 'SUPERADMIN' || $usuario->tienePermiso('instrumentos.revisar'))
+            && $version->usuario_id !== $usuario->id;
+    }
+
     public function approve(Usuario $usuario, InstrumentoVersion $version): bool
     {
         $instrumento = $version->instrumento;

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InstrumentoVersion extends Model
 {
@@ -24,5 +25,15 @@ class InstrumentoVersion extends Model
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(Usuario::class);
+    }
+
+    public function revisiones(): HasMany
+    {
+        return $this->hasMany(Revision::class);
+    }
+
+    public function aprobaciones(): HasMany
+    {
+        return $this->hasMany(Aprobacion::class);
     }
 }

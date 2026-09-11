@@ -81,6 +81,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/instrumentos', [\App\Http\Controllers\InstrumentoController::class, 'index'])
         ->middleware('permiso:instrumentos.ver')
         ->name('instrumentos.index');
+    Route::get('/instrumentos/{instrumento}', [\App\Http\Controllers\InstrumentoWorkflowController::class, 'show'])
+        ->middleware('permiso:instrumentos.ver')
+        ->name('instrumentos.show');
+    Route::prefix('instrumentos')->name('instrumentos.')->middleware('permiso:instrumentos.gestionar')->group(function () {
+        Route::post('/{instrumento}/versiones', [\App\Http\Controllers\InstrumentoWorkflowController::class, 'storeVersion'])->name('versiones.store');
+        Route::post('/{instrumento}/documentos', [\App\Http\Controllers\InstrumentoWorkflowController::class, 'storeDocument'])->name('documentos.store');
+        Route::post('/versiones/{version}/enviar-revision', [\App\Http\Controllers\InstrumentoWorkflowController::class, 'submitRevision'])->name('versiones.submit');
+        Route::post('/observaciones/{observacion}/responder', [\App\Http\Controllers\InstrumentoWorkflowController::class, 'respondObservation'])->name('observaciones.respond');
+    });
+    Route::post('/instrumentos/versiones/{version}/observaciones', [\App\Http\Controllers\InstrumentoWorkflowController::class, 'storeObservation'])
+        ->middleware('permiso:instrumentos.revisar')
+        ->name('instrumentos.versiones.observations.store');
+    Route::post('/instrumentos/versiones/{version}/decidir', [\App\Http\Controllers\InstrumentoWorkflowController::class, 'decide'])
+        ->middleware('permiso:instrumentos.aprobar')
+        ->name('instrumentos.versiones.decide');
 
 
     /*

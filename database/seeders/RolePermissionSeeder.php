@@ -112,6 +112,7 @@ class RolePermissionSeeder extends Seeder
                 'normativa.ver',
                 'normativa.gestionar',
                 'instrumentos.ver',
+                'instrumentos.revisar',
                 'instrumentos.aprobar',
             ]
         );

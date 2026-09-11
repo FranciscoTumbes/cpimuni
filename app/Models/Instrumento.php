@@ -40,4 +40,9 @@ class Instrumento extends Model
     {
         return $this->hasMany(InstrumentoVersion::class);
     }
+
+    public function documentos(): HasMany
+    {
+        return $this->hasMany(Documento::class);
+    }
 }

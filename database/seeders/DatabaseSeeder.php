@@ -60,6 +60,7 @@ class DatabaseSeeder extends Seeder
             ['nombre' => 'normativa.gestionar', 'modulo' => 'normativa', 'descripcion' => 'Gestionar normativa'],
             ['nombre' => 'instrumentos.ver', 'modulo' => 'instrumentos', 'descripcion' => 'Ver instrumentos'],
             ['nombre' => 'instrumentos.gestionar', 'modulo' => 'instrumentos', 'descripcion' => 'Gestionar instrumentos'],
+            ['nombre' => 'instrumentos.revisar', 'modulo' => 'instrumentos', 'descripcion' => 'Revisar instrumentos y registrar observaciones'],
             ['nombre' => 'instrumentos.aprobar', 'modulo' => 'instrumentos', 'descripcion' => 'Aprobar instrumentos'],
             ['nombre' => 'documentos.gestionar', 'modulo' => 'documentos', 'descripcion' => 'Gestionar documentos'],
             ['nombre' => 'reportes.ver', 'modulo' => 'reportes', 'descripcion' => 'Ver reportes'],

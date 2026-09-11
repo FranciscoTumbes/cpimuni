@@ -12,6 +12,8 @@ use App\Models\UnidadOrganica;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -180,7 +182,79 @@ class AdminCrudTest extends TestCase
             'password' => 'password123',
             'estado' => 'ACTIVO',
         ]);
-
         $this->assertTrue(Gate::forUser($revisor)->allows('approve', $version));
+    }
+
+    public function test_instrument_version_completes_review_observation_and_approval_flow(): void
+    {
+        $municipalidad = Municipalidad::firstOrFail();
+        $creador = Usuario::where('email', 'municipalidad@cpimuni.test')->firstOrFail();
+        $rolRevisor = Rol::where('nombre', 'ASESORIA_JURIDICA')->firstOrFail();
+        $revisor = Usuario::create([
+            'municipalidad_id' => $municipalidad->id,
+            'rol_id' => $rolRevisor->id,
+            'nombre' => 'Revisor',
+            'apellido' => 'Documental',
+            'email' => 'flujo-revisor@cpimuni.test',
+            'password' => 'password123',
+            'estado' => 'ACTIVO',
+        ]);
+        $instrumento = Instrumento::create([
+            'municipalidad_id' => $municipalidad->id,
+            'tipo' => 'ROF',
+            'nombre' => 'ROF con flujo completo',
+            'estado' => 'BORRADOR',
+        ]);
+        Storage::fake('private');
+        $this->actingAs($creador)
+            ->post(route('instrumentos.documentos.store', $instrumento), [
+                'archivo' => UploadedFile::fake()->create('informe.pdf', 12, 'application/pdf'),
+                'tipo' => 'Informe técnico',
+            ])->assertRedirect();
+        $this->assertDatabaseHas('documentos', ['instrumento_id' => $instrumento->id, 'tipo' => 'Informe técnico']);
+
+        $this->actingAs($creador)
+            ->post(route('instrumentos.versiones.store', $instrumento), [
+                'version' => '1.0',
+                'motivo' => 'Versión inicial',
+            ])->assertRedirect();
+        $version = InstrumentoVersion::where('instrumento_id', $instrumento->id)->firstOrFail();
+
+        $this->post(route('instrumentos.versiones.submit', $version))->assertRedirect();
+        $this->actingAs($revisor)
+            ->post(route('instrumentos.versiones.observations.store', $version), [
+                'observacion' => 'Completar el fundamento legal.',
+            ])->assertRedirect();
+        $observacion = $version->fresh()->revisiones()->firstOrFail()->observaciones()->firstOrFail();
+
+        $this->actingAs($creador)
+            ->post(route('instrumentos.observaciones.respond', $observacion), [
+                'respuesta' => 'Fundamento legal incorporado.',
+            ])->assertRedirect();
+        $aprobador = Usuario::create([
+            'municipalidad_id' => $municipalidad->id,
+            'rol_id' => Rol::where('nombre', 'ADMIN_MUNICIPAL')->firstOrFail()->id,
+            'nombre' => 'Aprobador',
+            'apellido' => 'Independiente',
+            'email' => 'flujo-aprobador@cpimuni.test',
+            'password' => 'password123',
+            'estado' => 'ACTIVO',
+        ]);
+        $this->assertTrue($aprobador->tienePermiso('instrumentos.aprobar'));
+        $this->assertNotSame($aprobador->id, $version->usuario_id);
+        $this->assertSame($municipalidad->id, $version->fresh()->instrumento->municipalidad_id);
+        $this->assertSame($municipalidad->id, $aprobador->municipalidad_id);
+        $this->assertSame(0, Auditoria::where('usuario_id', $aprobador->id)->whereIn('tabla', ['instrumentos', 'instrumento_versiones'])->count());
+        $this->assertTrue(Gate::forUser($aprobador)->allows('approve', $version->fresh()));
+        $this->actingAs($aprobador)
+            ->post(route('instrumentos.versiones.decide', $version), [
+                'resultado' => 'APROBADO',
+                'tipo' => 'APROBACION_FORMAL',
+                'comentario' => 'Revisión conforme.',
+            ])->assertRedirect();
+
+        $this->assertDatabaseHas('instrumento_versiones', ['id' => $version->id, 'estado' => 'APROBADO']);
+        $this->assertDatabaseHas('instrumentos', ['id' => $instrumento->id, 'estado' => 'APROBADO']);
+        $this->assertDatabaseHas('aprobaciones', ['instrumento_version_id' => $version->id, 'resultado' => 'APROBADO', 'usuario_id' => $aprobador->id]);
     }
 }

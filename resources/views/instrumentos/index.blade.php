@@ -24,7 +24,7 @@
             <tbody>
             @forelse($instrumentos as $instrumento)
                 <tr>
-                    <td><strong>{{ $instrumento->nombre }}</strong><small>{{ $instrumento->codigo ?: 'Sin código' }}</small></td>
+                    <td><a href="{{ route('instrumentos.show', $instrumento) }}"><strong>{{ $instrumento->nombre }}</strong></a><small>{{ $instrumento->codigo ?: 'Sin código' }}</small></td>
                     <td>{{ $instrumento->tipo }}</td>
                     <td>{{ $instrumento->municipalidad?->nombre ?: 'Global' }}</td>
                     <td><span class="status">{{ $instrumento->estado }}</span></td>
