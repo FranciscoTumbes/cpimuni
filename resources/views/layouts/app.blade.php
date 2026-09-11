@@ -584,7 +584,7 @@
                     DOCUMENTOS
                 </div>
 
-                <a href="{{ route('admin.auditoria') }}" class="menu-item {{ request()->routeIs('admin.auditoria') ? 'active' : '' }}">
+                <a href="#" class="menu-item">
                     <i class="fa-solid fa-folder-open"></i>
                     <span>Documentos</span>
                 </a>
@@ -630,7 +630,7 @@
                     <span>Roles y permisos</span>
                 </a>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('admin.auditoria') }}" class="menu-item {{ request()->routeIs('admin.auditoria') ? 'active' : '' }}">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>Auditoría</span>
                 </a>
