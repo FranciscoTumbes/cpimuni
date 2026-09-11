@@ -26,13 +26,14 @@ class OrganizacionController extends Controller
             'puestos' => $scope(Puesto::query())->with('unidad')->orderBy('denominacion')->get(),
             'funciones' => $scope(Funcion::query())->with('unidad', 'puesto')->orderBy('codigo')->get(),
             'municipalidades' => Municipalidad::orderBy('nombre')->get(),
+            'municipalidadActual' => $request->user()->municipalidad,
         ]);
     }
 
     public function storeOrgano(Request $request): RedirectResponse
     {
         $municipalidadId = $this->municipalidadId($request, $request->input('municipalidad_id'));
-        $data = $request->validate(['municipalidad_id' => ['required', 'exists:municipalidades,id'], 'codigo' => ['nullable', 'string', 'max:50'], 'nombre' => ['required', 'string', 'max:255'], 'tipo' => ['nullable', 'string', 'max:100'], 'nivel_jerarquico' => ['nullable', 'integer'], 'organo_padre_id' => ['nullable', $this->belongsToMunicipality('organos', $municipalidadId)]]);
+        $data = $request->validate(['municipalidad_id' => ['nullable', 'exists:municipalidades,id'], 'codigo' => ['nullable', 'string', 'max:50'], 'nombre' => ['required', 'string', 'max:255'], 'tipo' => ['nullable', 'string', 'max:100'], 'nivel_jerarquico' => ['nullable', 'integer'], 'organo_padre_id' => ['nullable', $this->belongsToMunicipality('organos', $municipalidadId)]]);
         $data['municipalidad_id'] = $municipalidadId;
         Organo::create($data);
         return back()->with('success', 'Órgano registrado.');
@@ -41,7 +42,7 @@ class OrganizacionController extends Controller
     public function storeUnidad(Request $request): RedirectResponse
     {
         $municipalidadId = $this->municipalidadId($request, $request->input('municipalidad_id'));
-        $data = $request->validate(['municipalidad_id' => ['required', 'exists:municipalidades,id'], 'organo_id' => ['nullable', $this->belongsToMunicipality('organos', $municipalidadId)], 'codigo' => ['nullable', 'string', 'max:50'], 'nombre' => ['required', 'string', 'max:255'], 'tipo' => ['nullable', 'string', 'max:100'], 'unidad_padre_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)], 'finalidad' => ['nullable', 'string']]);
+        $data = $request->validate(['municipalidad_id' => ['nullable', 'exists:municipalidades,id'], 'organo_id' => ['nullable', $this->belongsToMunicipality('organos', $municipalidadId)], 'codigo' => ['nullable', 'string', 'max:50'], 'nombre' => ['required', 'string', 'max:255'], 'tipo' => ['nullable', 'string', 'max:100'], 'unidad_padre_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)], 'finalidad' => ['nullable', 'string']]);
         $data['municipalidad_id'] = $municipalidadId;
         UnidadOrganica::create($data);
         return back()->with('success', 'Unidad orgánica registrada.');
@@ -50,7 +51,7 @@ class OrganizacionController extends Controller
     public function storePuesto(Request $request): RedirectResponse
     {
         $municipalidadId = $this->municipalidadId($request, $request->input('municipalidad_id'));
-        $data = $request->validate(['municipalidad_id' => ['required', 'exists:municipalidades,id'], 'unidad_organica_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)], 'codigo' => ['nullable', 'string', 'max:50'], 'denominacion' => ['required', 'string', 'max:255'], 'nivel' => ['nullable', 'string', 'max:100'], 'finalidad' => ['nullable', 'string']]);
+        $data = $request->validate(['municipalidad_id' => ['nullable', 'exists:municipalidades,id'], 'unidad_organica_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)], 'codigo' => ['nullable', 'string', 'max:50'], 'denominacion' => ['required', 'string', 'max:255'], 'nivel' => ['nullable', 'string', 'max:100'], 'finalidad' => ['nullable', 'string']]);
         $data['municipalidad_id'] = $municipalidadId;
         Puesto::create($data);
         return back()->with('success', 'Puesto registrado.');
@@ -59,7 +60,7 @@ class OrganizacionController extends Controller
     public function storeFuncion(Request $request): RedirectResponse
     {
         $municipalidadId = $this->municipalidadId($request, $request->input('municipalidad_id'));
-        $data = $request->validate(['municipalidad_id' => ['required', 'exists:municipalidades,id'], 'unidad_organica_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)], 'puesto_id' => ['nullable', $this->belongsToMunicipality('puestos', $municipalidadId)], 'codigo' => ['nullable', 'string', 'max:50'], 'descripcion' => ['required', 'string'], 'tipo' => ['nullable', 'string', 'max:100'], 'fuente' => ['nullable', 'string', 'max:100'], 'fecha_inicio' => ['nullable', 'date'], 'fecha_fin' => ['nullable', 'date', 'after_or_equal:fecha_inicio']]);
+        $data = $request->validate(['municipalidad_id' => ['nullable', 'exists:municipalidades,id'], 'unidad_organica_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)], 'puesto_id' => ['nullable', $this->belongsToMunicipality('puestos', $municipalidadId)], 'codigo' => ['nullable', 'string', 'max:50'], 'descripcion' => ['required', 'string'], 'tipo' => ['nullable', 'string', 'max:100'], 'fuente' => ['nullable', 'string', 'max:100'], 'fecha_inicio' => ['nullable', 'date'], 'fecha_fin' => ['nullable', 'date', 'after_or_equal:fecha_inicio']]);
         $data['municipalidad_id'] = $municipalidadId;
         Funcion::create($data);
         return back()->with('success', 'Función registrada.');

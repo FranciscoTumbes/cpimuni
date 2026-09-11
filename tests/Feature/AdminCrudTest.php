@@ -116,6 +116,26 @@ class AdminCrudTest extends TestCase
         $this->assertDatabaseMissing('unidades_organicas', ['nombre' => 'Unidad Cruzada']);
     }
 
+    public function test_municipal_admin_can_register_a_position_without_sending_municipality_id(): void
+    {
+        $administradorMunicipal = Usuario::where('email', 'municipalidad@cpimuni.test')->firstOrFail();
+
+        $this->actingAs($administradorMunicipal)
+            ->get(route('organizacion.index'))
+            ->assertOk()
+            ->assertSee($administradorMunicipal->municipalidad->nombre);
+
+        $this->post(route('organizacion.puestos.store'), [
+            'denominacion' => 'Especialista en Planeamiento',
+            'codigo' => 'PUESTO-001',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('puestos', [
+            'municipalidad_id' => $administradorMunicipal->municipalidad_id,
+            'denominacion' => 'Especialista en Planeamiento',
+        ]);
+    }
+
     public function test_user_changes_are_recorded_with_before_and_after_values(): void
     {
         $rol = Rol::where('nombre', 'CONSULTA')->firstOrFail();
