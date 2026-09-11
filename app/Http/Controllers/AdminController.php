@@ -87,6 +87,7 @@ class AdminController extends Controller
         if ($actor->rol?->nombre !== 'SUPERADMIN' && Rol::findOrFail($data['rol_id'])->nombre === 'SUPERADMIN') {
             abort(403, 'No puede asignar el rol SUPERADMIN.');
         }
+        $this->ensureActiveMunicipality($data['municipalidad_id'] ?? null);
         $data['password'] = Hash::make($data['password']);
         Usuario::create($data);
         return back()->with('success', 'Usuario registrado correctamente.');
@@ -112,6 +113,8 @@ class AdminController extends Controller
         if ($actor->rol?->nombre !== 'SUPERADMIN' && Rol::findOrFail($data['rol_id'])->nombre === 'SUPERADMIN') {
             abort(403, 'No puede asignar el rol SUPERADMIN.');
         }
+        $this->ensureActiveMunicipality($data['municipalidad_id'] ?? null);
+        $this->ensureAccountProtection($actor, $usuario, $data);
         if (blank($data['password'] ?? null)) unset($data['password']); else $data['password'] = Hash::make($data['password']);
         $usuario->update($data);
         return redirect()->route('admin.usuarios')->with('success', 'Usuario actualizado correctamente.');
@@ -132,7 +135,12 @@ class AdminController extends Controller
 
     public function updateRol(Request $request, Rol $rol): RedirectResponse
     {
+        Gate::authorize('update', $rol);
         $data = $request->validate(['descripcion' => ['nullable', 'string', 'max:255'], 'permisos' => ['array'], 'permisos.*' => ['integer', 'exists:permisos,id']]);
+        if ($rol->nombre === 'ADMIN_MUNICIPAL') {
+            $permisos = Permiso::whereIn('nombre', ['usuarios.gestionar', 'auditoria.ver'])->pluck('id');
+            abort_unless($permisos->diff($data['permisos'] ?? [])->isEmpty(), 422, 'El rol ADMIN_MUNICIPAL debe conservar sus permisos críticos.');
+        }
         $permisosAnteriores = $rol->permisos()->pluck('nombre')->sort()->values()->all();
         $rol->update(['descripcion' => $data['descripcion'] ?? null]);
         $rol->permisos()->sync($data['permisos'] ?? []);
@@ -151,6 +159,7 @@ class AdminController extends Controller
 
     public function storeRol(Request $request): RedirectResponse
     {
+        Gate::authorize('create', Rol::class);
         $data = $request->validate(['nombre' => ['required', 'string', 'max:100', 'unique:roles,nombre'], 'descripcion' => ['nullable', 'string', 'max:255']]);
         Rol::create($data);
         return back()->with('success', 'Rol creado correctamente.');
@@ -158,6 +167,7 @@ class AdminController extends Controller
 
     public function destroyRol(Rol $rol): RedirectResponse
     {
+        Gate::authorize('delete', $rol);
         if ($rol->nombre === 'SUPERADMIN' || $rol->usuarios()->exists()) return back()->withErrors(['rol' => 'No se puede eliminar este rol porque está protegido o tiene usuarios asociados.']);
         $rol->delete();
         return back()->with('success', 'Rol eliminado.');
@@ -165,6 +175,7 @@ class AdminController extends Controller
 
     public function storePermiso(Request $request): RedirectResponse
     {
+        Gate::authorize('create', Permiso::class);
         $data = $request->validate(['nombre' => ['required', 'string', 'max:150', 'unique:permisos,nombre'], 'modulo' => ['nullable', 'string', 'max:100'], 'descripcion' => ['nullable', 'string', 'max:255']]);
         Permiso::create($data);
         return back()->with('success', 'Permiso creado correctamente.');
@@ -172,6 +183,7 @@ class AdminController extends Controller
 
     public function updatePermiso(Request $request, Permiso $permiso): RedirectResponse
     {
+        Gate::authorize('update', $permiso);
         $data = $request->validate(['nombre' => ['required', 'string', 'max:150', 'unique:permisos,nombre,'.$permiso->id], 'modulo' => ['nullable', 'string', 'max:100'], 'descripcion' => ['nullable', 'string', 'max:255']]);
         $permiso->update($data);
         return back()->with('success', 'Permiso actualizado correctamente.');
@@ -179,6 +191,7 @@ class AdminController extends Controller
 
     public function destroyPermiso(Permiso $permiso): RedirectResponse
     {
+        Gate::authorize('delete', $permiso);
         if ($permiso->roles()->exists()) return back()->withErrors(['permiso' => 'No se puede eliminar un permiso asignado a roles.']);
         $permiso->delete();
         return back()->with('success', 'Permiso eliminado.');
@@ -191,5 +204,25 @@ class AdminController extends Controller
             403,
             'No puede administrar usuarios de otra municipalidad.'
         );
+    }
+
+    private function ensureActiveMunicipality(?int $municipalidadId): void
+    {
+        if ($municipalidadId && Municipalidad::whereKey($municipalidadId)->where('estado', 'ACTIVA')->doesntExist()) {
+            abort(422, 'La municipalidad seleccionada no está activa.');
+        }
+    }
+
+    private function ensureAccountProtection(Usuario $actor, Usuario $target, array $data): void
+    {
+        if ($actor->is($target) && (($data['rol_id'] ?? $target->rol_id) !== $target->rol_id || ($data['estado'] ?? $target->estado) !== $target->estado)) {
+            abort(403, 'No puede cambiar su propio rol o estado.');
+        }
+
+        $isActiveMunicipalAdmin = $target->rol?->nombre === 'ADMIN_MUNICIPAL' && $target->estado === 'ACTIVO';
+        $remainsActiveMunicipalAdmin = Rol::whereKey($data['rol_id'])->where('nombre', 'ADMIN_MUNICIPAL')->exists() && ($data['estado'] ?? $target->estado) === 'ACTIVO';
+        if ($isActiveMunicipalAdmin && ! $remainsActiveMunicipalAdmin && $target->municipalidad_id && Usuario::where('municipalidad_id', $target->municipalidad_id)->where('rol_id', $target->rol_id)->where('estado', 'ACTIVO')->where('id', '!=', $target->id)->doesntExist()) {
+            abort(422, 'No puede dejar la municipalidad sin un administrador activo.');
+        }
     }
 }

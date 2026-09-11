@@ -7,6 +7,7 @@ use App\Models\Instrumento;
 use App\Models\InstrumentoVersion;
 use App\Models\Municipalidad;
 use App\Models\Organo;
+use App\Models\Permiso;
 use App\Models\Rol;
 use App\Models\UnidadOrganica;
 use App\Models\Usuario;
@@ -256,5 +257,74 @@ class AdminCrudTest extends TestCase
         $this->assertDatabaseHas('instrumento_versiones', ['id' => $version->id, 'estado' => 'APROBADO']);
         $this->assertDatabaseHas('instrumentos', ['id' => $instrumento->id, 'estado' => 'APROBADO']);
         $this->assertDatabaseHas('aprobaciones', ['instrumento_version_id' => $version->id, 'resultado' => 'APROBADO', 'usuario_id' => $aprobador->id]);
+    }
+
+    public function test_critical_role_cannot_be_modified(): void
+    {
+        $superadmin = Rol::where('nombre', 'SUPERADMIN')->firstOrFail();
+
+        $this->put(route('admin.roles.update', $superadmin), [
+            'descripcion' => 'Intento de modificación',
+            'permisos' => [],
+        ])->assertForbidden();
+    }
+
+    public function test_last_municipal_admin_cannot_be_deactivated(): void
+    {
+        $administrador = Usuario::where('email', 'municipalidad@cpimuni.test')->firstOrFail();
+        $rolConsulta = Rol::where('nombre', 'CONSULTA')->firstOrFail();
+
+        $this->put(route('admin.usuarios.update', $administrador), [
+            'municipalidad_id' => $administrador->municipalidad_id,
+            'rol_id' => $rolConsulta->id,
+            'nombre' => $administrador->nombre,
+            'apellido' => $administrador->apellido,
+            'email' => $administrador->email,
+            'estado' => 'INACTIVO',
+        ])->assertStatus(422);
+    }
+
+    public function test_user_cannot_change_own_role_or_state(): void
+    {
+        $administrador = Usuario::where('email', 'municipalidad@cpimuni.test')->firstOrFail();
+        $rolConsulta = Rol::where('nombre', 'CONSULTA')->firstOrFail();
+
+        $this->actingAs($administrador)
+            ->put(route('admin.usuarios.update', $administrador), [
+                'municipalidad_id' => $administrador->municipalidad_id,
+                'rol_id' => $rolConsulta->id,
+                'nombre' => $administrador->nombre,
+                'apellido' => $administrador->apellido,
+                'email' => $administrador->email,
+                'estado' => 'INACTIVO',
+            ])->assertForbidden();
+    }
+
+    public function test_users_cannot_be_created_in_inactive_municipality(): void
+    {
+        $municipalidad = Municipalidad::firstOrFail();
+        $municipalidad->update(['estado' => 'INACTIVA']);
+        $rol = Rol::where('nombre', 'CONSULTA')->firstOrFail();
+
+        $this->post(route('admin.usuarios.store'), [
+            'municipalidad_id' => $municipalidad->id,
+            'rol_id' => $rol->id,
+            'nombre' => 'Usuario',
+            'apellido' => 'Inactivo',
+            'email' => 'inactivo@cpimuni.test',
+            'password' => 'password123',
+            'estado' => 'ACTIVO',
+        ])->assertStatus(422);
+    }
+
+    public function test_municipal_admin_role_cannot_lose_critical_permissions(): void
+    {
+        $rol = Rol::where('nombre', 'ADMIN_MUNICIPAL')->firstOrFail();
+        $permisos = Permiso::whereNotIn('nombre', ['usuarios.gestionar', 'auditoria.ver'])->pluck('id')->all();
+
+        $this->put(route('admin.roles.update', $rol), [
+            'descripcion' => $rol->descripcion,
+            'permisos' => $permisos,
+        ])->assertStatus(422);
     }
 }
