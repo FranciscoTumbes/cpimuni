@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class UnidadOrganica extends Model
 {
+    use Auditable;
+
     protected $table = 'unidades_organicas';
 
     protected $fillable = ['municipalidad_id', 'organo_id', 'codigo', 'nombre', 'tipo', 'nivel_jerarquico', 'unidad_padre_id', 'finalidad', 'estado'];

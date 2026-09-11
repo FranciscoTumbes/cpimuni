@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Puesto extends Model
 {
+    use Auditable;
+
     protected $table = 'puestos';
 
     protected $fillable = ['municipalidad_id', 'unidad_organica_id', 'codigo', 'denominacion', 'nivel', 'finalidad', 'requisitos', 'competencias', 'estado'];

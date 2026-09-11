@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Funcion extends Model
 {
+    use Auditable;
+
     protected $table = 'funciones';
 
     protected $fillable = ['municipalidad_id', 'unidad_organica_id', 'puesto_id', 'codigo', 'descripcion', 'tipo', 'fuente', 'estado', 'fecha_inicio', 'fecha_fin'];

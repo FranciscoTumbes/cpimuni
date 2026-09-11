@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Norma extends Model
 {
+    use Auditable;
+
     protected $table = 'normas';
 
     protected $fillable = ['municipalidad_id', 'tipo', 'numero', 'titulo', 'fecha_emision', 'fecha_vigencia', 'fecha_derogacion', 'estado', 'archivo', 'enlace', 'resumen'];

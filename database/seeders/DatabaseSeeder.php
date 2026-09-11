@@ -75,28 +75,30 @@ class DatabaseSeeder extends Seeder
         $superadmin = Rol::where('nombre', 'SUPERADMIN')->firstOrFail();
         $admin = Rol::where('nombre', 'ADMIN_MUNICIPAL')->firstOrFail();
 
-        Usuario::updateOrCreate(
-            ['email' => 'admin@cpimuni.test'],
-            [
-                'municipalidad_id' => null,
-                'rol_id' => $superadmin->id,
-                'nombre' => 'Administrador',
-                'apellido' => 'CPIMuni',
-                'password' => Hash::make('password'),
-                'estado' => 'ACTIVO',
-            ]
-        );
+        if (app()->environment('local', 'testing')) {
+            Usuario::updateOrCreate(
+                ['email' => 'admin@cpimuni.test'],
+                [
+                    'municipalidad_id' => null,
+                    'rol_id' => $superadmin->id,
+                    'nombre' => 'Administrador',
+                    'apellido' => 'CPIMuni',
+                    'password' => Hash::make('password'),
+                    'estado' => 'ACTIVO',
+                ]
+            );
 
-        Usuario::updateOrCreate(
-            ['email' => 'municipalidad@cpimuni.test'],
-            [
-                'municipalidad_id' => $municipalidad->id,
-                'rol_id' => $admin->id,
-                'nombre' => 'Administrador',
-                'apellido' => 'Municipal',
-                'password' => Hash::make('password'),
-                'estado' => 'ACTIVO',
-            ]
-        );
+            Usuario::updateOrCreate(
+                ['email' => 'municipalidad@cpimuni.test'],
+                [
+                    'municipalidad_id' => $municipalidad->id,
+                    'rol_id' => $admin->id,
+                    'nombre' => 'Administrador',
+                    'apellido' => 'Municipal',
+                    'password' => Hash::make('password'),
+                    'estado' => 'ACTIVO',
+                ]
+            );
+        }
     }
 }

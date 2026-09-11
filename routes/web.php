@@ -57,6 +57,9 @@ Route::middleware('auth')->group(function () {
         Route::put('/permisos/{permiso}', [\App\Http\Controllers\AdminController::class, 'updatePermiso'])->name('permisos.update');
         Route::delete('/permisos/{permiso}', [\App\Http\Controllers\AdminController::class, 'destroyPermiso'])->name('permisos.destroy');
     });
+    Route::get('/administracion/auditoria', [\App\Http\Controllers\AuditoriaController::class, 'index'])
+        ->middleware('permiso:auditoria.ver')
+        ->name('admin.auditoria');
 
     Route::prefix('organizacion')->name('organizacion.')->middleware('permiso:organizacion.ver')->group(function () {
         Route::get('/', [\App\Http\Controllers\OrganizacionController::class, 'index'])->name('index');

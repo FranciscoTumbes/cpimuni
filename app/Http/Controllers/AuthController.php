@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Usuario;
-use App\Models\Auditoria;
+use App\Services\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -64,6 +64,7 @@ class AuthController extends Controller
 
         if (!$usuario) {
             RateLimiter::hit($key, 60);
+            AuditService::event('usuarios', 'LOGIN', null, null, null, null, 'Intento de inicio de sesión rechazado.', 'FALLIDO', 'Usuario no encontrado', $request);
 
             return back()
                 ->withInput($request->only('email'))
@@ -86,6 +87,8 @@ class AuthController extends Controller
                 default => 'Su cuenta no está habilitada para ingresar.',
             };
 
+            AuditService::event('usuarios', 'LOGIN', $usuario->id, $usuario->municipalidad_id, null, null, 'Intento de inicio de sesión rechazado.', 'FALLIDO', $mensaje, $request);
+
             return back()
                 ->withInput($request->only('email'))
                 ->withErrors([
@@ -104,6 +107,7 @@ class AuthController extends Controller
             $usuario->password
         )) {
             RateLimiter::hit($key, 60);
+            AuditService::event('usuarios', 'LOGIN', $usuario->id, $usuario->municipalidad_id, null, null, 'Intento de inicio de sesión rechazado.', 'FALLIDO', 'Contraseña inválida', $request);
 
             return back()
                 ->withInput($request->only('email'))
@@ -133,16 +137,7 @@ class AuthController extends Controller
             'ultimo_acceso' => now(),
         ]);
 
-        Auditoria::create([
-            'municipalidad_id' => $usuario->municipalidad_id,
-            'usuario_id' => $usuario->id,
-            'tabla' => 'usuarios',
-            'registro_id' => $usuario->id,
-            'accion' => 'LOGIN',
-            'descripcion' => 'Inicio de sesión exitoso.',
-            'ip' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
+        AuditService::event('usuarios', 'LOGIN', $usuario->id, $usuario->municipalidad_id, null, null, 'Inicio de sesión exitoso.', 'EXITOSO', null, $request);
 
         return redirect()->intended(
             route('dashboard')
@@ -157,16 +152,7 @@ class AuthController extends Controller
         $usuario = $request->user();
 
         if ($usuario) {
-            Auditoria::create([
-                'municipalidad_id' => $usuario->municipalidad_id,
-                'usuario_id' => $usuario->id,
-                'tabla' => 'usuarios',
-                'registro_id' => $usuario->id,
-                'accion' => 'LOGOUT',
-                'descripcion' => 'Cierre de sesión.',
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]);
+            AuditService::event('usuarios', 'LOGOUT', $usuario->id, $usuario->municipalidad_id, null, null, 'Cierre de sesión.', 'EXITOSO', null, $request);
         }
 
         Auth::logout();

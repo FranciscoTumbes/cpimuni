@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Auditoria;
 use App\Models\Municipalidad;
+use App\Models\Organo;
 use App\Models\Rol;
+use App\Models\UnidadOrganica;
 use App\Models\Usuario;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -79,5 +82,69 @@ class AdminCrudTest extends TestCase
             ->assertSessionHasErrors('municipalidad');
 
         $this->assertDatabaseHas('municipalidades', ['id' => $municipalidad->id]);
+    }
+
+    public function test_municipal_admin_cannot_reference_an_organ_from_another_municipality(): void
+    {
+        $municipalidadAjena = Municipalidad::create([
+            'nombre' => 'Municipalidad Ajena',
+            'ruc' => '20988888888',
+            'tipo' => 'DISTRITAL',
+            'estado' => 'ACTIVA',
+        ]);
+        $organoAjeno = Organo::create([
+            'municipalidad_id' => $municipalidadAjena->id,
+            'nombre' => 'Órgano Ajeno',
+        ]);
+        $administradorMunicipal = Usuario::where('email', 'municipalidad@cpimuni.test')->firstOrFail();
+
+        $this->actingAs($administradorMunicipal)
+            ->post(route('organizacion.unidades.store'), [
+                'municipalidad_id' => $municipalidadAjena->id,
+                'organo_id' => $organoAjeno->id,
+                'nombre' => 'Unidad Cruzada',
+            ])
+            ->assertSessionHasErrors('organo_id');
+
+        $this->assertDatabaseMissing('unidades_organicas', ['nombre' => 'Unidad Cruzada']);
+    }
+
+    public function test_user_changes_are_recorded_with_before_and_after_values(): void
+    {
+        $rol = Rol::where('nombre', 'CONSULTA')->firstOrFail();
+        $municipalidad = Municipalidad::firstOrFail();
+
+        $this->post(route('admin.usuarios.store'), [
+            'municipalidad_id' => $municipalidad->id,
+            'rol_id' => $rol->id,
+            'nombre' => 'Auditado',
+            'apellido' => 'Inicial',
+            'email' => 'auditado@cpimuni.test',
+            'password' => 'password123',
+            'estado' => 'ACTIVO',
+        ])->assertRedirect();
+
+        $usuario = Usuario::where('email', 'auditado@cpimuni.test')->firstOrFail();
+
+        $this->put(route('admin.usuarios.update', $usuario), [
+            'municipalidad_id' => $municipalidad->id,
+            'rol_id' => $rol->id,
+            'nombre' => 'Auditado Editado',
+            'apellido' => 'Final',
+            'email' => 'auditado@cpimuni.test',
+            'estado' => 'INACTIVO',
+        ])->assertRedirect();
+
+        $auditoria = Auditoria::where('tabla', 'usuarios')
+            ->where('registro_id', $usuario->id)
+            ->where('accion', 'ACTUALIZAR')
+            ->latest('id')
+            ->firstOrFail();
+
+        $this->assertSame(Usuario::where('email', 'admin@cpimuni.test')->value('id'), $auditoria->usuario_id);
+        $this->assertSame('Inicial', $auditoria->datos_anteriores['apellido']);
+        $this->assertSame('Auditado Editado', $auditoria->datos_nuevos['nombre']);
+        $this->assertSame('EXITOSO', $auditoria->resultado);
+        $this->assertSame($municipalidad->id, $auditoria->municipalidad_id);
     }
 }

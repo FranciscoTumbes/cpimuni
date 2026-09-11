@@ -19,8 +19,17 @@ class Auditoria extends Model
         'registro_id',
         'accion',
         'descripcion',
+        'datos_anteriores',
+        'datos_nuevos',
+        'resultado',
+        'motivo',
         'ip',
         'user_agent',
+    ];
+
+    protected $casts = [
+        'datos_anteriores' => 'array',
+        'datos_nuevos' => 'array',
     ];
 
     public function municipalidad(): BelongsTo

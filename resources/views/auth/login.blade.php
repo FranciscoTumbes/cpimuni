@@ -2,322 +2,193 @@
 <html lang="es">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>CPIMuni | Iniciar sesión</title>
 
     <style>
+
         * {
             box-sizing: border-box;
-        }
-
-        html,
-        body {
             margin: 0;
             padding: 0;
-            min-height: 100%;
-            font-family: "Segoe UI", Arial, sans-serif;
         }
 
         body {
             min-height: 100vh;
+            font-family:
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
             background:
-                radial-gradient(circle at 15% 20%, rgba(28, 126, 184, .30), transparent 30%),
-                radial-gradient(circle at 85% 80%, rgba(0, 180, 216, .18), transparent 30%),
-                linear-gradient(135deg, #07111f 0%, #0b2944 50%, #0b3c6d 100%);
+                radial-gradient(
+                    circle at top left,
+                    #1e5a91 0%,
+                    transparent 35%
+                ),
+                linear-gradient(
+                    135deg,
+                    #07111f,
+                    #0b2035,
+                    #102d47
+                );
 
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 25px;
+
             color: #fff;
         }
 
-        .page {
-            width: 100%;
-            max-width: 1050px;
-            min-height: 650px;
-
-            display: grid;
-            grid-template-columns: 1.05fr .95fr;
-
+        .background {
+            position: fixed;
+            inset: 0;
             overflow: hidden;
-
-            border-radius: 26px;
-
-            background: rgba(255, 255, 255, .075);
-
-            border: 1px solid rgba(255, 255, 255, .14);
-
-            box-shadow:
-                0 35px 90px rgba(0, 0, 0, .45);
-
-            backdrop-filter: blur(22px);
+            pointer-events: none;
         }
 
-        /* PANEL IZQUIERDO */
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(2px);
+            opacity: .15;
+        }
 
-        .brand-panel {
-            padding: 55px;
+        .circle.one {
+            width: 420px;
+            height: 420px;
+            background: #3498db;
+            top: -180px;
+            left: -120px;
+        }
+
+        .circle.two {
+            width: 300px;
+            height: 300px;
+            background: #00b4d8;
+            bottom: -120px;
+            right: -80px;
+        }
+
+        .login-container {
+            width: min(430px, 92%);
+            position: relative;
+            z-index: 2;
+        }
+
+        .login-card {
+            padding: 42px 38px;
+            border-radius: 24px;
+
+            background:
+                rgba(255,255,255,.08);
+
+            border:
+                1px solid rgba(255,255,255,.15);
+
+            box-shadow:
+                0 30px 80px rgba(0,0,0,.45);
+
+            backdrop-filter:
+                blur(20px);
+        }
+
+        .logo {
+            width: 78px;
+            height: 78px;
+            margin: 0 auto 20px;
+
+            border-radius: 20px;
 
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            align-items: center;
+            justify-content: center;
 
             background:
                 linear-gradient(
                     145deg,
-                    rgba(11, 60, 109, .92),
-                    rgba(12, 86, 132, .68)
+                    #1976b9,
+                    #0b3c6d
                 );
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .brand-logo {
-            width: 62px;
-            height: 62px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 17px;
-
-            background: rgba(255, 255, 255, .13);
-
-            border: 1px solid rgba(255, 255, 255, .22);
-
-            font-size: 20px;
-            font-weight: 800;
-
-            letter-spacing: -1px;
-        }
-
-        .brand-name {
-            font-size: 28px;
-            font-weight: 800;
-        }
-
-        .brand-name span {
-            font-weight: 400;
-        }
-
-        .presentation {
-            max-width: 440px;
-        }
-
-        .presentation h1 {
-            margin: 0 0 20px;
-
-            font-size: clamp(35px, 4vw, 50px);
-
-            line-height: 1.08;
-
-            letter-spacing: -1.5px;
-        }
-
-        .presentation p {
-            margin: 0;
-
-            color: #d6e7f5;
-
-            font-size: 16px;
-
-            line-height: 1.7;
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-
-            gap: 13px;
-
-            margin-top: 35px;
-        }
-
-        .feature {
-            padding: 14px;
-
-            border-radius: 13px;
-
-            background: rgba(255, 255, 255, .08);
-
-            border: 1px solid rgba(255, 255, 255, .10);
-
-            color: #e6f2fb;
-
-            font-size: 13px;
-        }
-
-        .copyright {
-            color: #a9c4d8;
-            font-size: 12px;
-        }
-
-        /* PANEL LOGIN */
-
-        .login-panel {
-            background: rgba(255, 255, 255, .97);
-
-            color: #172b3a;
-
-            padding: 55px;
-
-            display: flex;
-            align-items: center;
-        }
-
-        .login-box {
-            width: 100%;
-            max-width: 390px;
-            margin: auto;
-        }
-
-        .login-title {
-            margin-bottom: 8px;
-
-            color: #0b3c6d;
 
             font-size: 30px;
             font-weight: 800;
+
+            box-shadow:
+                0 12px 30px rgba(0,0,0,.25);
         }
 
-        .login-subtitle {
-            margin-bottom: 30px;
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            letter-spacing: -.5px;
+        }
 
-            color: #687b8d;
-
+        .subtitle {
+            text-align: center;
+            color: #b9c8d8;
+            margin-top: 8px;
+            margin-bottom: 32px;
             font-size: 14px;
-        }
-
-        .alert {
-            padding: 13px 15px;
-
-            border-radius: 10px;
-
-            margin-bottom: 20px;
-
-            font-size: 13px;
-        }
-
-        .alert-error {
-            color: #842029;
-
-            background: #f8d7da;
-
-            border: 1px solid #f1aeb5;
-        }
-
-        .alert-success {
-            color: #0f5132;
-
-            background: #d1e7dd;
-
-            border: 1px solid #a3cfbb;
         }
 
         .form-group {
             margin-bottom: 20px;
         }
 
-        .form-group label {
+        label {
             display: block;
-
             margin-bottom: 8px;
-
-            color: #243b53;
-
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
-
-        .input-icon {
-            position: absolute;
-
-            left: 15px;
-            top: 50%;
-
-            transform: translateY(-50%);
-
-            color: #7890a4;
-
-            font-size: 16px;
-        }
-
-        .form-control {
-            width: 100%;
-
-            height: 50px;
-
-            padding: 0 15px 0 44px;
-
-            border-radius: 11px;
-
-            border: 1px solid #d5dee7;
-
-            background: #f8fafc;
-
-            color: #172b3a;
-
+            color: #dce7f2;
             font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+
+            border-radius: 12px;
+
+            border:
+                1px solid rgba(255,255,255,.14);
+
+            background:
+                rgba(0,0,0,.20);
+
+            color: #fff;
 
             outline: none;
+
+            font-size: 15px;
 
             transition: .2s;
         }
 
-        .form-control:focus {
-            border-color: #1687d4;
+        input::placeholder {
+            color: #8295a8;
+        }
 
-            background: #fff;
+        input:focus {
+            border-color: #3da9e8;
 
             box-shadow:
-                0 0 0 3px rgba(22, 135, 212, .12);
+                0 0 0 3px rgba(61,169,232,.15);
         }
 
-        .password-toggle {
-            position: absolute;
-
-            right: 14px;
-            top: 50%;
-
-            transform: translateY(-50%);
-
-            border: 0;
-
-            background: transparent;
-
-            color: #71869a;
-
-            cursor: pointer;
-
-            font-size: 12px;
-        }
-
-        .password-control {
-            padding-right: 55px;
-        }
-
-        .btn-login {
+        .btn {
             width: 100%;
 
-            height: 51px;
-
-            margin-top: 7px;
+            padding: 14px;
 
             border: 0;
-
-            border-radius: 11px;
+            border-radius: 12px;
 
             background:
                 linear-gradient(
@@ -328,295 +199,168 @@
 
             color: #fff;
 
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
 
             cursor: pointer;
 
-            box-shadow:
-                0 8px 20px rgba(11, 92, 152, .25);
-
             transition: .2s;
         }
 
-        .btn-login:hover {
+        .btn:hover {
             transform: translateY(-1px);
 
             box-shadow:
-                0 12px 25px rgba(11, 92, 152, .32);
+                0 10px 25px rgba(0,0,0,.25);
         }
 
-        .security {
-            margin-top: 25px;
+        .error {
+            background: rgba(220,53,69,.15);
+            border: 1px solid rgba(220,53,69,.3);
 
-            padding-top: 20px;
+            color: #ffb8bf;
 
-            border-top: 1px solid #e5eaf0;
+            padding: 12px 14px;
 
+            border-radius: 10px;
+
+            margin-bottom: 20px;
+
+            font-size: 13px;
+        }
+
+        .success {
+            background: rgba(25,135,84,.15);
+            border: 1px solid rgba(25,135,84,.3);
+
+            color: #9ce3bf;
+
+            padding: 12px 14px;
+
+            border-radius: 10px;
+
+            margin-bottom: 20px;
+
+            font-size: 13px;
+        }
+
+        .footer {
             text-align: center;
 
-            color: #8796a5;
+            color: #8295a8;
 
-            font-size: 11px;
+            font-size: 12px;
 
-            line-height: 1.6;
+            margin-top: 25px;
         }
 
-        .security strong {
-            color: #536779;
+        .footer strong {
+            color: #b9d8ed;
         }
 
-        @media (max-width: 800px) {
-
-            .page {
-                grid-template-columns: 1fr;
-                max-width: 500px;
-            }
-
-            .brand-panel {
-                display: none;
-            }
-
-            .login-panel {
-                min-height: 600px;
-                padding: 40px 30px;
-            }
-        }
-
-        @media (max-width: 420px) {
-
-            body {
-                padding: 12px;
-            }
-
-            .login-panel {
-                padding: 35px 22px;
-            }
-        }
     </style>
 
 </head>
 
 <body>
 
-<div class="page">
+<div class="background">
 
-    <!-- PANEL INSTITUCIONAL -->
-
-    <section class="brand-panel">
-
-        <div>
-
-            <div class="brand">
-
-                <div class="brand-logo">
-                    CPI
-                </div>
-
-                <div class="brand-name">
-                    CPI<span>Muni</span>
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="presentation">
-
-            <h1>
-                Gestión municipal inteligente.
-            </h1>
-
-            <p>
-                Plataforma integral para la gestión,
-                organización y administración de los
-                instrumentos de gestión municipal.
-            </p>
-
-            <div class="features">
-
-                <div class="feature">
-                    🏛️ Gestión institucional
-                </div>
-
-                <div class="feature">
-                    📋 Instrumentos de gestión
-                </div>
-
-                <div class="feature">
-                    👥 Organización municipal
-                </div>
-
-                <div class="feature">
-                    📊 Reportes y seguimiento
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="copyright">
-            CPIMuni · Plataforma de Gestión Municipal
-        </div>
-
-    </section>
-
-
-    <!-- PANEL LOGIN -->
-
-    <section class="login-panel">
-
-        <div class="login-box">
-
-            <div class="login-title">
-                Iniciar sesión
-            </div>
-
-            <div class="login-subtitle">
-                Accede a tu cuenta de CPIMuni
-            </div>
-
-
-            @if ($errors->any())
-
-                <div class="alert alert-error">
-
-                    {{ $errors->first() }}
-
-                </div>
-
-            @endif
-
-
-            @if (session('success'))
-
-                <div class="alert alert-success">
-
-                    {{ session('success') }}
-
-                </div>
-
-            @endif
-
-
-            <form
-                method="POST"
-                action="{{ route('login.process') }}"
-            >
-
-                @csrf
-
-
-                <div class="form-group">
-
-                    <label for="email">
-                        Correo electrónico
-                    </label>
-
-                    <div class="input-wrapper">
-
-                        <span class="input-icon">
-                            ✉
-                        </span>
-
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            class="form-control"
-                            value="{{ old('email') }}"
-                            placeholder="Ingrese su correo"
-                            autocomplete="email"
-                            required
-                            autofocus
-                        >
-
-                    </div>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="password">
-                        Contraseña
-                    </label>
-
-                    <div class="input-wrapper">
-
-                        <span class="input-icon">
-                            🔒
-                        </span>
-
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            class="form-control password-control"
-                            placeholder="Ingrese su contraseña"
-                            autocomplete="current-password"
-                            required
-                        >
-
-                        <button
-                            type="button"
-                            class="password-toggle"
-                            onclick="togglePassword()"
-                        >
-                            Mostrar
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <button
-                    type="submit"
-                    class="btn-login"
-                >
-                    Iniciar sesión
-                </button>
-
-            </form>
-
-
-            <div class="security">
-
-                🔐 Acceso protegido mediante autenticación segura.<br>
-
-                <strong>CPIMuni</strong> · Gestión Municipal
-
-            </div>
-
-        </div>
-
-    </section>
+    <div class="circle one"></div>
+    <div class="circle two"></div>
 
 </div>
 
+<div class="login-container">
 
-<script>
+    <div class="login-card">
 
-function togglePassword()
-{
-    const input = document.getElementById('password');
-    const button = document.querySelector('.password-toggle');
+        <div class="logo">
+            CPI
+        </div>
 
-    if (input.type === 'password') {
+        <h1>CPIMuni</h1>
 
-        input.type = 'text';
-        button.textContent = 'Ocultar';
+        <div class="subtitle">
+            Plataforma de Gestión Municipal
+        </div>
 
-    } else {
+        @if ($errors->any())
 
-        input.type = 'password';
-        button.textContent = 'Mostrar';
+            <div class="error">
+                {{ $errors->first() }}
+            </div>
 
-    }
-}
+        @endif
 
-</script>
+        @if (session('success'))
+
+            <div class="success">
+                {{ session('success') }}
+            </div>
+
+        @endif
+
+        <form
+            method="POST"
+            action="{{ route('login.process') }}"
+        >
+
+            @csrf
+
+            <div class="form-group">
+
+                <label for="email">
+                    Correo electrónico
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value="{{ old('email') }}"
+                    placeholder="usuario@municipalidad.gob.pe"
+                    required
+                    autofocus
+                >
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="password">
+                    Contraseña
+                </label>
+
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Ingrese su contraseña"
+                    required
+                >
+
+            </div>
+
+            <button
+                type="submit"
+                class="btn"
+            >
+                Iniciar sesión
+            </button>
+
+        </form>
+
+        <div class="footer">
+
+            Sistema desarrollado por
+            <strong>CPIGestor</strong>
+
+        </div>
+
+    </div>
+
+</div>
 
 </body>
 

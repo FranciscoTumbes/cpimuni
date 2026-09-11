@@ -6,6 +6,7 @@ use App\Models\Municipalidad;
 use App\Models\Permiso;
 use App\Models\Rol;
 use App\Models\Usuario;
+use App\Services\AuditService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -128,8 +129,19 @@ class AdminController extends Controller
     public function updateRol(Request $request, Rol $rol): RedirectResponse
     {
         $data = $request->validate(['descripcion' => ['nullable', 'string', 'max:255'], 'permisos' => ['array'], 'permisos.*' => ['integer', 'exists:permisos,id']]);
+        $permisosAnteriores = $rol->permisos()->pluck('nombre')->sort()->values()->all();
         $rol->update(['descripcion' => $data['descripcion'] ?? null]);
         $rol->permisos()->sync($data['permisos'] ?? []);
+        $permisosNuevos = $rol->permisos()->pluck('nombre')->sort()->values()->all();
+        AuditService::event(
+            'roles',
+            'ACTUALIZAR',
+            $rol->id,
+            null,
+            ['permisos' => $permisosAnteriores],
+            ['descripcion' => $rol->descripcion, 'permisos' => $permisosNuevos],
+            'Actualización de permisos del rol.'
+        );
         return back()->with('success', 'Permisos del rol actualizados.');
     }
 
