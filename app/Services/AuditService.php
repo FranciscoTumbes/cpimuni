@@ -43,14 +43,15 @@ class AuditService
         ?string $description = null,
         string $result = 'EXITOSO',
         ?string $reason = null,
-        ?Request $request = null
+        ?Request $request = null,
+        ?int $auditUserId = null
     ): Auditoria {
         $request ??= app()->bound('request') ? request() : null;
         $actor = Auth::user();
 
         return Auditoria::create([
             'municipalidad_id' => $municipalityId ?? $actor?->municipalidad_id,
-            'usuario_id' => $actor?->getAuthIdentifier(),
+            'usuario_id' => $auditUserId ?? $actor?->getAuthIdentifier(),
             'tabla' => $table,
             'registro_id' => $recordId,
             'accion' => $action,

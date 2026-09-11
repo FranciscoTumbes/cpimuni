@@ -87,7 +87,7 @@ class AuthController extends Controller
                 default => 'Su cuenta no está habilitada para ingresar.',
             };
 
-            AuditService::event('usuarios', 'LOGIN', $usuario->id, $usuario->municipalidad_id, null, null, 'Intento de inicio de sesión rechazado.', 'FALLIDO', $mensaje, $request);
+            AuditService::event('usuarios', 'LOGIN', $usuario->id, $usuario->municipalidad_id, null, null, 'Intento de inicio de sesión rechazado.', 'FALLIDO', $mensaje, $request, $usuario->id);
 
             return back()
                 ->withInput($request->only('email'))
@@ -107,7 +107,7 @@ class AuthController extends Controller
             $usuario->password
         )) {
             RateLimiter::hit($key, 60);
-            AuditService::event('usuarios', 'LOGIN', $usuario->id, $usuario->municipalidad_id, null, null, 'Intento de inicio de sesión rechazado.', 'FALLIDO', 'Contraseña inválida', $request);
+            AuditService::event('usuarios', 'LOGIN', $usuario->id, $usuario->municipalidad_id, null, null, 'Intento de inicio de sesión rechazado.', 'FALLIDO', 'Contraseña inválida', $request, $usuario->id);
 
             return back()
                 ->withInput($request->only('email'))
