@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class AdminController extends Controller
@@ -38,11 +39,13 @@ class AdminController extends Controller
 
     public function editMunicipalidad(Municipalidad $municipalidad): View
     {
+        Gate::authorize('view', $municipalidad);
         return view('admin.municipalidades.edit', compact('municipalidad'));
     }
 
     public function updateMunicipalidad(Request $request, Municipalidad $municipalidad): RedirectResponse
     {
+        Gate::authorize('update', $municipalidad);
         $data = $request->validate([
             'codigo_entidad' => ['nullable', 'string', 'max:20'], 'ruc' => ['nullable', 'string', 'max:20', 'unique:municipalidades,ruc,'.$municipalidad->id],
             'nombre' => ['required', 'string', 'max:255'], 'tipo' => ['required', 'in:PROVINCIAL,DISTRITAL'],
@@ -55,6 +58,7 @@ class AdminController extends Controller
 
     public function destroyMunicipalidad(Municipalidad $municipalidad): RedirectResponse
     {
+        Gate::authorize('delete', $municipalidad);
         if ($municipalidad->usuarios()->exists()) {
             return back()->withErrors(['municipalidad' => 'No se puede eliminar una municipalidad que tiene usuarios asociados.']);
         }
@@ -90,13 +94,13 @@ class AdminController extends Controller
 
     public function editUsuario(Request $request, Usuario $usuario): View
     {
-        $this->ensureUserScope($request, $usuario);
+        Gate::authorize('view', $usuario);
         return view('admin.usuarios.edit', ['usuario' => $usuario, 'roles' => Rol::orderBy('nombre')->get(), 'municipalidades' => $request->user()->rol?->nombre === 'SUPERADMIN' ? Municipalidad::orderBy('nombre')->get() : collect()]);
     }
 
     public function updateUsuario(Request $request, Usuario $usuario): RedirectResponse
     {
-        $this->ensureUserScope($request, $usuario);
+        Gate::authorize('update', $usuario);
         $actor = $request->user();
         $data = $request->validate([
             'municipalidad_id' => ['nullable', 'integer', 'exists:municipalidades,id'], 'rol_id' => ['required', 'exists:roles,id'],
@@ -115,7 +119,7 @@ class AdminController extends Controller
 
     public function destroyUsuario(Request $request, Usuario $usuario): RedirectResponse
     {
-        $this->ensureUserScope($request, $usuario);
+        Gate::authorize('delete', $usuario);
         if ($request->user()->is($usuario)) return back()->withErrors(['usuario' => 'No puede eliminar su propia cuenta.']);
         $usuario->delete();
         return back()->with('success', 'Usuario eliminado.');

@@ -6,6 +6,7 @@ use App\Models\Norma;
 use App\Models\Municipalidad;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class NormativaController extends Controller
@@ -23,7 +24,9 @@ class NormativaController extends Controller
         $data['municipalidad_id'] = $request->user()->rol?->nombre === 'SUPERADMIN' ? ($data['municipalidad_id'] ?? null) : $request->user()->municipalidad_id;
         abort_unless($data['municipalidad_id'], 422, 'Seleccione una municipalidad.');
         $data['estado'] = 'VIGENTE';
-        Norma::create($data);
+        $norma = Norma::make($data);
+        Gate::authorize('update', $norma);
+        $norma->save();
         return back()->with('success', 'Norma registrada.');
     }
 }

@@ -3,11 +3,15 @@
 namespace Tests\Feature;
 
 use App\Models\Auditoria;
+use App\Models\Instrumento;
+use App\Models\InstrumentoVersion;
 use App\Models\Municipalidad;
 use App\Models\Organo;
 use App\Models\Rol;
 use App\Models\UnidadOrganica;
 use App\Models\Usuario;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -146,5 +150,37 @@ class AdminCrudTest extends TestCase
         $this->assertSame('Auditado Editado', $auditoria->datos_nuevos['nombre']);
         $this->assertSame('EXITOSO', $auditoria->resultado);
         $this->assertSame($municipalidad->id, $auditoria->municipalidad_id);
+    }
+
+    public function test_creator_cannot_approve_own_instrument_version(): void
+    {
+        $municipalidad = Municipalidad::firstOrFail();
+        $instrumento = Instrumento::create([
+            'municipalidad_id' => $municipalidad->id,
+            'tipo' => 'ROF',
+            'nombre' => 'Instrumento para segregación',
+            'estado' => 'EN_REVISION',
+        ]);
+        $version = InstrumentoVersion::create([
+            'instrumento_id' => $instrumento->id,
+            'version' => '1.0',
+            'estado' => 'EN_REVISION',
+            'usuario_id' => Auth::id(),
+        ]);
+
+        $this->assertFalse(Gate::forUser(Usuario::findOrFail(Auth::id()))->allows('approve', $version));
+
+        $rol = Rol::where('nombre', 'ASESORIA_JURIDICA')->firstOrFail();
+        $revisor = Usuario::create([
+            'municipalidad_id' => $municipalidad->id,
+            'rol_id' => $rol->id,
+            'nombre' => 'Revisor',
+            'apellido' => 'Independiente',
+            'email' => 'revisor@cpimuni.test',
+            'password' => 'password123',
+            'estado' => 'ACTIVO',
+        ]);
+
+        $this->assertTrue(Gate::forUser($revisor)->allows('approve', $version));
     }
 }

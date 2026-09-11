@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InstrumentoVersion extends Model
 {
+    use Auditable;
+
     protected $table = 'instrumento_versiones';
 
     protected $fillable = ['instrumento_id', 'version', 'motivo', 'usuario_id', 'fecha_version', 'estado', 'archivo_docx', 'archivo_pdf', 'observaciones'];
