@@ -13,7 +13,7 @@ class UnidadOrganica extends Model
 
     protected $table = 'unidades_organicas';
 
-    protected $fillable = ['municipalidad_id', 'organo_id', 'codigo', 'nombre', 'tipo', 'nivel_jerarquico', 'unidad_padre_id', 'finalidad', 'estado'];
+    protected $fillable = ['municipalidad_id', 'organo_id', 'codigo', 'nombre', 'abreviatura', 'tipo', 'categoria_institucional', 'nivel_jerarquico', 'orden', 'unidad_padre_id', 'finalidad', 'descripcion', 'estado'];
 
     public function municipalidad(): BelongsTo { return $this->belongsTo(Municipalidad::class); }
     public function organo(): BelongsTo { return $this->belongsTo(Organo::class); }

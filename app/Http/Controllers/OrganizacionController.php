@@ -42,7 +42,7 @@ class OrganizacionController extends Controller
     public function storeUnidad(Request $request): RedirectResponse
     {
         $municipalidadId = $this->municipalidadId($request, $request->input('municipalidad_id'));
-        $data = $request->validate(['municipalidad_id' => ['nullable', 'exists:municipalidades,id'], 'organo_id' => ['nullable', $this->belongsToMunicipality('organos', $municipalidadId)], 'codigo' => ['nullable', 'string', 'max:50'], 'nombre' => ['required', 'string', 'max:255'], 'tipo' => ['nullable', 'string', 'max:100'], 'unidad_padre_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)], 'finalidad' => ['nullable', 'string']]);
+        $data = $request->validate(['municipalidad_id' => ['nullable', 'exists:municipalidades,id'], 'organo_id' => ['nullable', $this->belongsToMunicipality('organos', $municipalidadId)], 'codigo' => ['nullable', 'string', 'max:50'], 'nombre' => ['required', 'string', 'max:255'], 'abreviatura' => ['nullable', 'string', 'max:30'], 'tipo' => ['nullable', 'string', 'max:100'], 'categoria_institucional' => ['nullable', 'string', 'max:50'], 'nivel_jerarquico' => ['nullable', 'integer', 'min:0'], 'orden' => ['nullable', 'integer', 'min:0'], 'unidad_padre_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)], 'finalidad' => ['nullable', 'string'], 'descripcion' => ['nullable', 'string']]);
         $data['municipalidad_id'] = $municipalidadId;
         UnidadOrganica::create($data);
         return back()->with('success', 'Unidad orgánica registrada.');
@@ -140,8 +140,12 @@ class OrganizacionController extends Controller
             'unidades' => $request->validate($common + [
                 'organo_id' => ['nullable', $this->belongsToMunicipality('organos', $municipalidadId)],
                 'unidad_padre_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)],
+                'abreviatura' => ['nullable', 'string', 'max:30'],
+                'categoria_institucional' => ['nullable', 'string', 'max:50'],
                 'nivel_jerarquico' => ['nullable', 'integer', 'min:0'],
+                'orden' => ['nullable', 'integer', 'min:0'],
                 'finalidad' => ['nullable', 'string'],
+                'descripcion' => ['nullable', 'string'],
                 'estado' => ['required', 'in:ACTIVA,INACTIVA'],
             ]),
             'puestos' => $request->validate([

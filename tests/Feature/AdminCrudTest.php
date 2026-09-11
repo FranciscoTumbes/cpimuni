@@ -373,6 +373,33 @@ class AdminCrudTest extends TestCase
         $this->assertDatabaseHas('organos', ['id' => $organo->id, 'nombre' => 'Órgano actualizado', 'estado' => 'INACTIVO']);
     }
 
+    public function test_unit_preserves_institutional_fields_for_nested_structure(): void
+    {
+        $municipalidad = Municipalidad::firstOrFail();
+
+        $this->post(route('organizacion.unidades.store'), [
+            'municipalidad_id' => $municipalidad->id,
+            'nombre' => 'Subgerencia de Presupuesto',
+            'abreviatura' => 'SGP',
+            'tipo' => 'SUBGERENCIA',
+            'categoria_institucional' => 'SUBGERENCIA',
+            'nivel_jerarquico' => 4,
+            'orden' => 2,
+            'finalidad' => 'Gestionar el presupuesto institucional.',
+            'descripcion' => 'Unidad orgánica dependiente de una gerencia.',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('unidades_organicas', [
+            'municipalidad_id' => $municipalidad->id,
+            'nombre' => 'Subgerencia de Presupuesto',
+            'abreviatura' => 'SGP',
+            'categoria_institucional' => 'SUBGERENCIA',
+            'nivel_jerarquico' => 4,
+            'orden' => 2,
+            'descripcion' => 'Unidad orgánica dependiente de una gerencia.',
+        ]);
+    }
+
     public function test_organizational_hierarchy_rejects_cycles_and_cross_municipality_updates(): void
     {
         $municipalidad = Municipalidad::firstOrFail();

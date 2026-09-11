@@ -19,11 +19,15 @@
         @elseif($tipo === 'unidades')
             <label>Código<input name="codigo" value="{{ old('codigo', $model->codigo) }}"></label>
             <label>Nombre<input name="nombre" required value="{{ old('nombre', $model->nombre) }}"></label>
+            <label>Abreviatura<input name="abreviatura" maxlength="30" value="{{ old('abreviatura', $model->abreviatura) }}"></label>
             <label>Tipo<input name="tipo" value="{{ old('tipo', $model->tipo) }}"></label>
+            <label>Categoría institucional<select name="categoria_institucional"><option value="">Sin categoría</option>@foreach(['GERENCIA', 'SUBGERENCIA', 'OFICINA', 'ÁREA', 'OTRA'] as $categoria)<option value="{{ $categoria }}" @selected(old('categoria_institucional', $model->categoria_institucional) === $categoria)>{{ $categoria }}</option>@endforeach</select></label>
             <label>Órgano<select name="organo_id"><option value="">Sin órgano</option>@foreach($organos as $item)<option value="{{ $item->id }}" @selected(old('organo_id', $model->organo_id) == $item->id)>{{ $item->nombre }}</option>@endforeach</select></label>
             <label>Unidad padre<select name="unidad_padre_id"><option value="">Sin padre</option>@foreach($unidades as $item)<option value="{{ $item->id }}" @selected(old('unidad_padre_id', $model->unidad_padre_id) == $item->id)>{{ $item->nombre }}</option>@endforeach</select></label>
             <label>Nivel jerárquico<input type="number" name="nivel_jerarquico" min="0" value="{{ old('nivel_jerarquico', $model->nivel_jerarquico) }}"></label>
+            <label>Orden<input type="number" name="orden" min="0" value="{{ old('orden', $model->orden) }}"></label>
             <label class="wide">Finalidad<textarea name="finalidad">{{ old('finalidad', $model->finalidad) }}</textarea></label>
+            <label class="wide">Descripción<textarea name="descripcion">{{ old('descripcion', $model->descripcion) }}</textarea></label>
             <label>Estado<select name="estado"><option value="ACTIVA" @selected($model->estado === 'ACTIVA')>ACTIVA</option><option value="INACTIVA" @selected($model->estado === 'INACTIVA')>INACTIVA</option></select></label>
         @elseif($tipo === 'puestos')
             <label>Unidad<select name="unidad_organica_id"><option value="">Sin unidad</option>@foreach($unidades as $item)<option value="{{ $item->id }}" @selected(old('unidad_organica_id', $model->unidad_organica_id) == $item->id)>{{ $item->nombre }}</option>@endforeach</select></label>
