@@ -513,17 +513,17 @@
                     <span>Organización</span>
                 </a>
 
-                <a href="{{ route('organizacion.index') }}" class="menu-item">
+                <a href="{{ route('organizacion.index') }}#organigrama" class="menu-item">
                     <i class="fa-solid fa-diagram-project"></i>
                     <span>Organigrama</span>
                 </a>
 
-                <a href="{{ route('organizacion.index') }}" class="menu-item">
+                <a href="{{ route('organizacion.index') }}#puestos" class="menu-item">
                     <i class="fa-solid fa-briefcase"></i>
                     <span>Puestos</span>
                 </a>
 
-                <a href="{{ route('organizacion.index') }}" class="menu-item">
+                <a href="{{ route('organizacion.index') }}#funciones" class="menu-item">
                     <i class="fa-solid fa-list-check"></i>
                     <span>Funciones</span>
                 </a>

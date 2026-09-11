@@ -69,6 +69,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/unidades', [\App\Http\Controllers\OrganizacionController::class, 'storeUnidad'])->name('unidades.store');
         Route::post('/puestos', [\App\Http\Controllers\OrganizacionController::class, 'storePuesto'])->name('puestos.store');
         Route::post('/funciones', [\App\Http\Controllers\OrganizacionController::class, 'storeFuncion'])->name('funciones.store');
+        Route::get('/{tipo}/{id}/editar', [\App\Http\Controllers\OrganizacionController::class, 'edit'])->whereIn('tipo', ['organos', 'unidades', 'puestos', 'funciones'])->name('edit');
+        Route::put('/{tipo}/{id}', [\App\Http\Controllers\OrganizacionController::class, 'update'])->whereIn('tipo', ['organos', 'unidades', 'puestos', 'funciones'])->name('update');
+        Route::delete('/{tipo}/{id}', [\App\Http\Controllers\OrganizacionController::class, 'destroy'])->whereIn('tipo', ['organos', 'unidades', 'puestos', 'funciones'])->name('destroy');
     });
 
     Route::prefix('normativa')->name('normativa.')->middleware('permiso:normativa.ver')->group(function () {

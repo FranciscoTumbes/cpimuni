@@ -327,4 +327,48 @@ class AdminCrudTest extends TestCase
             'permisos' => $permisos,
         ])->assertStatus(422);
     }
+
+    public function test_organizational_records_can_be_updated_and_deactivated(): void
+    {
+        $municipalidad = Municipalidad::firstOrFail();
+        $organo = Organo::create([
+            'municipalidad_id' => $municipalidad->id,
+            'codigo' => 'ORG-001',
+            'nombre' => 'Órgano original',
+            'estado' => 'ACTIVO',
+        ]);
+
+        $this->put(route('organizacion.update', ['organos', $organo->id]), [
+            'codigo' => 'ORG-001',
+            'nombre' => 'Órgano actualizado',
+            'tipo' => 'Órgano de línea',
+            'nivel_jerarquico' => 1,
+            'organo_padre_id' => null,
+            'estado' => 'ACTIVO',
+        ])->assertRedirect();
+
+        $this->delete(route('organizacion.destroy', ['organos', $organo->id]))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('organos', ['id' => $organo->id, 'nombre' => 'Órgano actualizado', 'estado' => 'INACTIVO']);
+    }
+
+    public function test_organizational_hierarchy_rejects_cycles_and_cross_municipality_updates(): void
+    {
+        $municipalidad = Municipalidad::firstOrFail();
+        $organo = Organo::create(['municipalidad_id' => $municipalidad->id, 'nombre' => 'Órgano base', 'estado' => 'ACTIVO']);
+        $hijo = Organo::create(['municipalidad_id' => $municipalidad->id, 'nombre' => 'Órgano hijo', 'estado' => 'ACTIVO', 'organo_padre_id' => $organo->id]);
+
+        $this->put(route('organizacion.update', ['organos', $organo->id]), [
+            'nombre' => 'Órgano base',
+            'organo_padre_id' => $hijo->id,
+            'estado' => 'ACTIVO',
+        ])->assertStatus(422);
+
+        $otraMunicipalidad = Municipalidad::create(['nombre' => 'Municipalidad externa', 'ruc' => '20666666666', 'tipo' => 'DISTRITAL', 'estado' => 'ACTIVA']);
+        $organoExterno = Organo::create(['municipalidad_id' => $otraMunicipalidad->id, 'nombre' => 'Órgano externo', 'estado' => 'ACTIVO']);
+        $this->actingAs(Usuario::where('email', 'municipalidad@cpimuni.test')->firstOrFail())
+            ->get(route('organizacion.edit', ['organos', $organoExterno->id]))
+            ->assertNotFound();
+    }
 }
