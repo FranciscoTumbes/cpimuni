@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(CatalogoEstructuraOrganizacionalSeeder::class);
+
         $municipalidad = Municipalidad::updateOrCreate(
             ['ruc' => '20123456789'],
             [

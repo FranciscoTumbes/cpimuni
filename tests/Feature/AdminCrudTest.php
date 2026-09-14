@@ -8,10 +8,12 @@ use App\Models\InstrumentoVersion;
 use App\Models\Municipalidad;
 use App\Models\Organo;
 use App\Models\Permiso;
+use App\Models\Puesto;
 use App\Models\Rol;
 use App\Models\UnidadOrganica;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Funcion;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
@@ -51,6 +53,59 @@ class AdminCrudTest extends TestCase
         $this->assertDatabaseMissing('municipalidades', ['id' => $municipalidad->id]);
     }
 
+    public function test_superadmin_can_duplicate_structure_without_users_or_documents(): void
+    {
+        $source = Municipalidad::firstOrFail();
+        $organo = Organo::create([
+            'municipalidad_id' => $source->id,
+            'codigo' => '01',
+            'nombre' => 'Órgano de prueba',
+            'tipo' => 'ORGANO',
+            'nivel_jerarquico' => 1,
+        ]);
+        $unidad = UnidadOrganica::create([
+            'municipalidad_id' => $source->id,
+            'organo_id' => $organo->id,
+            'codigo' => '01.01',
+            'nombre' => 'Unidad de prueba',
+            'tipo' => 'GERENCIA',
+            'nivel_jerarquico' => 2,
+        ]);
+        $puesto = Puesto::create([
+            'municipalidad_id' => $source->id,
+            'unidad_organica_id' => $unidad->id,
+            'codigo' => 'P-001',
+            'denominacion' => 'Puesto de prueba',
+        ]);
+        Funcion::create([
+            'municipalidad_id' => $source->id,
+            'unidad_organica_id' => $unidad->id,
+            'puesto_id' => $puesto->id,
+            'codigo' => 'F-001',
+            'descripcion' => 'Función de prueba',
+        ]);
+
+        $this->post(route('admin.municipalidades.duplicate', $source), [
+            'nombre' => 'Municipalidad clonada',
+            'ruc' => '20977777777',
+            'tipo' => 'DISTRITAL',
+            'estructura' => '1',
+            'puestos' => '1',
+            'funciones' => '1',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $destination = Municipalidad::where('ruc', '20977777777')->firstOrFail();
+        $newOrgano = Organo::where('municipalidad_id', $destination->id)->firstOrFail();
+        $newUnidad = UnidadOrganica::where('municipalidad_id', $destination->id)->firstOrFail();
+        $newPuesto = Puesto::where('municipalidad_id', $destination->id)->firstOrFail();
+
+        $this->assertNotSame($organo->id, $newOrgano->id);
+        $this->assertSame($newOrgano->id, $newUnidad->organo_id);
+        $this->assertSame($newUnidad->id, $newPuesto->unidad_organica_id);
+        $this->assertDatabaseHas('funciones', ['municipalidad_id' => $destination->id, 'puesto_id' => $newPuesto->id]);
+        $this->assertDatabaseMissing('usuarios', ['municipalidad_id' => $destination->id]);
+        $this->assertDatabaseMissing('documentos', ['municipalidad_id' => $destination->id]);
+    }
     public function test_superadmin_can_create_update_and_delete_user(): void
     {
         $rol = Rol::where('nombre', 'CONSULTA')->firstOrFail();

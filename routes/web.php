@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::prefix('administracion')->name('admin.')->middleware('permiso:municipalidades.gestionar')->group(function () {
         Route::post('/municipalidades', [\App\Http\Controllers\AdminController::class, 'storeMunicipalidad'])->name('municipalidades.store');
+        Route::post('/municipalidades/{municipalidad}/duplicar', [\App\Http\Controllers\AdminController::class, 'duplicateMunicipalidad'])->name('municipalidades.duplicate');
         Route::put('/municipalidades/{municipalidad}', [\App\Http\Controllers\AdminController::class, 'updateMunicipalidad'])->name('municipalidades.update');
         Route::delete('/municipalidades/{municipalidad}', [\App\Http\Controllers\AdminController::class, 'destroyMunicipalidad'])->name('municipalidades.destroy');
     });

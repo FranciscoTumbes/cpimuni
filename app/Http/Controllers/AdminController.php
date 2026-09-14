@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use App\Services\MunicipalidadCloneService;
 
 class AdminController extends Controller
 {
@@ -35,6 +36,36 @@ class AdminController extends Controller
         $data['estado'] = 'ACTIVA';
         Municipalidad::create($data);
         return back()->with('success', 'Municipalidad registrada correctamente.');
+    }
+
+    public function duplicateMunicipalidad(Request $request, Municipalidad $municipalidad, MunicipalidadCloneService $cloneService): RedirectResponse
+    {
+        abort_unless($request->user()->rol?->nombre === 'SUPERADMIN', 403);
+
+        $data = $request->validate([
+            'codigo_entidad' => ['nullable', 'string', 'max:20'],
+            'ruc' => ['nullable', 'string', 'max:20', 'unique:municipalidades,ruc'],
+            'nombre' => ['required', 'string', 'max:255'],
+            'tipo' => ['required', 'in:PROVINCIAL,DISTRITAL'],
+            'departamento' => ['nullable', 'string', 'max:100'],
+            'provincia' => ['nullable', 'string', 'max:100'],
+            'distrito' => ['nullable', 'string', 'max:100'],
+            'estructura' => ['sometimes', 'boolean'],
+            'puestos' => ['sometimes', 'boolean'],
+            'funciones' => ['sometimes', 'boolean'],
+            'normativa' => ['sometimes', 'boolean'],
+            'instrumentos' => ['sometimes', 'boolean'],
+        ]);
+
+        $options = collect(['estructura', 'puestos', 'funciones', 'normativa', 'instrumentos'])
+            ->mapWithKeys(fn (string $option) => [$option => (bool) ($data[$option] ?? false)])
+            ->all();
+        abort_unless(!($options['puestos'] || $options['funciones']) || $options['estructura'], 422, 'Puestos y funciones requieren copiar la estructura.');
+
+        unset($data['estructura'], $data['puestos'], $data['funciones'], $data['normativa'], $data['instrumentos']);
+        $cloneService->clone($municipalidad, $data, $options);
+
+        return redirect()->route('admin.municipalidades')->with('success', 'Municipalidad duplicada con la estructura seleccionada.');
     }
 
     public function editMunicipalidad(Municipalidad $municipalidad): View
