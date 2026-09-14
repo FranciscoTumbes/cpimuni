@@ -180,14 +180,49 @@
                 0 6px 18px rgba(37,99,235,.25);
         }
 
+        .menu-item i,
+        .brand-icon i,
+        .stat-icon i,
+        .quick-icon i,
+        .logout-button i,
+        .button i,
+        .icon-button i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
         .menu-item i {
             width: 18px;
             height: 18px;
             font-size: var(--icon-sm);
-            text-align: center;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        }
+
+        .brand-icon i {
+            width: 22px;
+            height: 22px;
+            font-size: var(--icon-lg);
+        }
+
+        .stat-icon i {
+            width: 22px;
+            height: 22px;
+            font-size: var(--icon-md);
+        }
+
+        .quick-icon i {
+            width: 16px;
+            height: 16px;
+            font-size: var(--icon-sm);
+        }
+
+        .logout-button i,
+        .button i,
+        .icon-button i {
+            width: 16px;
+            height: 16px;
+            font-size: var(--icon-sm);
         }
 
         /* =========================================================
