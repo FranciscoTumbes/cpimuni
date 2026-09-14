@@ -39,24 +39,45 @@
 
         :root {
             --primary: #0B3C6D;
-            --primary-dark: #082f55;
-            --secondary: #2563eb;
-            --background: #f1f5f9;
-            --sidebar: #0f172a;
-            --sidebar-hover: #1e293b;
-            --text: #1e293b;
-            --muted: #64748b;
-            --white: #ffffff;
-            --border: #e2e8f0;
-            --success: #16a34a;
-            --warning: #d97706;
-            --danger: #dc2626;
+            --primary-dark: #082F55;
+            --secondary: #2563EB;
+            --background: #F5F7FA;
+            --surface: #FFFFFF;
+            --sidebar: #0F172A;
+            --sidebar-hover: #1E293B;
+            --text: #1E293B;
+            --muted: #64748B;
+            --white: #FFFFFF;
+            --border: #E2E8F0;
+            --success: #16A34A;
+            --warning: #D97706;
+            --danger: #DC2626;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+            --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.10);
+            --icon-xs: 14px;
+            --icon-sm: 16px;
+            --icon-md: 18px;
+            --icon-lg: 24px;
+            --icon-xl: 32px;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background: var(--background);
             color: var(--text);
+        }
+
+        .fa,
+        .fas,
+        .far,
+        .fab,
+        .fa-solid,
+        .fa-regular,
+        .fa-brands {
+            font-size: inherit;
         }
 
         /* =========================================================
@@ -95,13 +116,13 @@
             border-radius: 12px;
             background: linear-gradient(
                 135deg,
-                #2563eb,
-                #0B3C6D
+                var(--secondary),
+                var(--primary)
             );
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 19px;
+            font-size: var(--icon-lg);
             margin-right: 12px;
         }
 
@@ -160,8 +181,13 @@
         }
 
         .menu-item i {
-            width: 20px;
+            width: 18px;
+            height: 18px;
+            font-size: var(--icon-sm);
             text-align: center;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* =========================================================
@@ -279,12 +305,11 @@
         }
 
         .card {
-            background: white;
+            background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 15px;
+            border-radius: var(--radius-lg);
             padding: 22px;
-            box-shadow:
-                0 5px 15px rgba(15,23,42,.04);
+            box-shadow: var(--shadow-sm);
         }
 
         .stat-card {
@@ -297,12 +322,12 @@
             width: 48px;
             height: 48px;
             border-radius: 12px;
-            background: #eff6ff;
-            color: #2563eb;
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--secondary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: var(--icon-md);
         }
 
         .stat-value {
@@ -628,6 +653,11 @@
                 <a href="{{ route('admin.roles') }}" class="menu-item {{ request()->routeIs('admin.roles*') ? 'active' : '' }}">
                     <i class="fa-solid fa-user-shield"></i>
                     <span>Roles y permisos</span>
+                </a>
+
+                <a href="{{ route('catalogos.estructura.index') }}" class="menu-item {{ request()->routeIs('catalogos.estructura.*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-network-wired"></i>
+                    <span>Catálogo de estructura</span>
                 </a>
 
                 <a href="{{ route('admin.auditoria') }}" class="menu-item {{ request()->routeIs('admin.auditoria') ? 'active' : '' }}">

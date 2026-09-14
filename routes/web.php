@@ -58,6 +58,14 @@ Route::middleware('auth')->group(function () {
         Route::put('/permisos/{permiso}', [\App\Http\Controllers\AdminController::class, 'updatePermiso'])->name('permisos.update');
         Route::delete('/permisos/{permiso}', [\App\Http\Controllers\AdminController::class, 'destroyPermiso'])->name('permisos.destroy');
     });
+
+    Route::prefix('catalogos')->name('catalogos.')->group(function () {
+        Route::get('/estructura-organizacional', [\App\Http\Controllers\CatalogoEstructuraOrganizacionalController::class, 'index'])->name('estructura.index');
+        Route::post('/estructura-organizacional', [\App\Http\Controllers\CatalogoEstructuraOrganizacionalController::class, 'store'])->name('estructura.store');
+        Route::put('/estructura-organizacional/{catalogo}', [\App\Http\Controllers\CatalogoEstructuraOrganizacionalController::class, 'update'])->name('estructura.update');
+        Route::delete('/estructura-organizacional/{catalogo}', [\App\Http\Controllers\CatalogoEstructuraOrganizacionalController::class, 'destroy'])->name('estructura.destroy');
+    });
+
     Route::get('/administracion/auditoria', [\App\Http\Controllers\AuditoriaController::class, 'index'])
         ->middleware('permiso:auditoria.ver')
         ->name('admin.auditoria');

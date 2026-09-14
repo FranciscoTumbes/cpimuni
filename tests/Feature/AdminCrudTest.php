@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Auditoria;
+use App\Models\CatalogoEstructuraOrganizacional;
 use App\Models\Instrumento;
 use App\Models\InstrumentoVersion;
 use App\Models\Municipalidad;
@@ -14,6 +15,12 @@ use App\Models\UnidadOrganica;
 use App\Models\Usuario;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Funcion;
+use App\Models\AccionEstrategica;
+use App\Models\ActividadOperativa;
+use App\Models\Indicador;
+use App\Models\ObjetivoEstrategico;
+use App\Models\PlanEstrategico;
+use App\Models\PlanOperativo;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
@@ -51,6 +58,105 @@ class AdminCrudTest extends TestCase
 
         $this->delete(route('admin.municipalidades.destroy', $municipalidad))->assertRedirect();
         $this->assertDatabaseMissing('municipalidades', ['id' => $municipalidad->id]);
+    }
+
+    public function test_superadmin_manages_organizational_catalog_and_regular_admin_is_forbidden(): void
+    {
+        $this->get(route('catalogos.estructura.index'))->assertOk();
+
+        $this->post(route('catalogos.estructura.store'), [
+            'codigo' => 'CAT-001',
+            'codigo_padre' => null,
+            'nombre' => 'Gobierno',
+            'categoria' => 'NATURALEZA',
+            'tipo' => 'NATURALEZA',
+            'nivel' => 1,
+            'descripcion' => 'Naturaleza de gobierno',
+            'permite_hijos' => true,
+            'orden' => 1,
+            'estado' => 'ACTIVO',
+        ])->assertRedirect();
+
+        $catalog = CatalogoEstructuraOrganizacional::where('codigo', 'CAT-001')->firstOrFail();
+
+        $this->put(route('catalogos.estructura.update', $catalog), [
+            'codigo' => 'CAT-001',
+            'nombre' => 'Gobierno institucional',
+            'categoria' => 'NATURALEZA',
+            'tipo' => 'NATURALEZA',
+            'nivel' => 1,
+            'descripcion' => 'Naturaleza institucional de gobierno',
+            'permite_hijos' => true,
+            'orden' => 1,
+            'estado' => 'ACTIVO',
+        ])->assertRedirect();
+
+        $this->delete(route('catalogos.estructura.destroy', $catalog))->assertRedirect();
+
+        $admin = Usuario::where('email', 'municipalidad@cpimuni.test')->firstOrFail();
+        $this->actingAs($admin)
+            ->get(route('catalogos.estructura.index'))
+            ->assertForbidden();
+    }
+
+    public function test_pei_poi_chain_links_strategy_to_responsible_activity_and_indicator(): void
+    {
+        $municipalidad = Municipalidad::firstOrFail();
+        $unidad = UnidadOrganica::create([
+            'municipalidad_id' => $municipalidad->id,
+            'codigo' => 'PL-001',
+            'nombre' => 'Gerencia de Planeamiento',
+            'tipo' => 'GERENCIA',
+            'estado' => 'ACTIVA',
+        ]);
+        $pei = PlanEstrategico::create([
+            'municipalidad_id' => $municipalidad->id,
+            'codigo' => 'PEI-2026-2030',
+            'nombre' => 'Plan Estratégico Institucional',
+            'anio_inicio' => 2026,
+            'anio_fin' => 2030,
+        ]);
+        $objetivo = ObjetivoEstrategico::create([
+            'plan_estrategico_id' => $pei->id,
+            'unidad_responsable_id' => $unidad->id,
+            'codigo' => 'OEI.01',
+            'enunciado' => 'Mejorar los servicios públicos municipales.',
+        ]);
+        $accion = AccionEstrategica::create([
+            'objetivo_estrategico_id' => $objetivo->id,
+            'unidad_responsable_id' => $unidad->id,
+            'codigo' => 'AEI.01.01',
+            'enunciado' => 'Fortalecer la prestación de servicios.',
+        ]);
+        $poi = PlanOperativo::create([
+            'municipalidad_id' => $municipalidad->id,
+            'codigo' => 'POI-2026',
+            'nombre' => 'Plan Operativo Institucional 2026',
+            'anio' => 2026,
+        ]);
+        $actividad = ActividadOperativa::create([
+            'plan_operativo_id' => $poi->id,
+            'accion_estrategica_id' => $accion->id,
+            'unidad_responsable_id' => $unidad->id,
+            'codigo' => 'AOI.01.01.01',
+            'denominacion' => 'Capacitar al personal municipal.',
+            'unidad_medida' => 'Persona capacitada',
+            'meta_programada' => 100,
+        ]);
+        $indicador = Indicador::create([
+            'municipalidad_id' => $municipalidad->id,
+            'actividad_operativa_id' => $actividad->id,
+            'codigo' => 'IND.01',
+            'nombre' => 'Porcentaje de personal capacitado',
+            'unidad_medida' => 'Porcentaje',
+            'meta' => 90,
+        ]);
+
+        $this->assertSame($objetivo->id, $accion->fresh()->objetivo->id);
+        $this->assertSame($accion->id, $actividad->fresh()->accion->id);
+        $this->assertSame($unidad->id, $actividad->fresh()->unidadResponsable->id);
+        $this->assertSame($actividad->id, $indicador->fresh()->actividad->id);
+        $this->assertSame($municipalidad->id, $poi->fresh()->municipalidad->id);
     }
 
     public function test_superadmin_can_duplicate_structure_without_users_or_documents(): void
@@ -189,6 +295,39 @@ class AdminCrudTest extends TestCase
             'municipalidad_id' => $administradorMunicipal->municipalidad_id,
             'denominacion' => 'Especialista en Planeamiento',
         ]);
+    }
+
+    public function test_organizational_nature_is_stored_separately_from_type(): void
+    {
+        $municipalidad = Municipalidad::firstOrFail();
+
+        $organo = Organo::create([
+            'municipalidad_id' => $municipalidad->id,
+            'codigo' => '07',
+            'nombre' => 'Gerencia de Desarrollo Económico',
+            'naturaleza' => 'LINEA',
+            'tipo' => 'GERENCIA',
+            'nivel_jerarquico' => 3,
+            'estado' => 'ACTIVO',
+        ]);
+
+        $unidad = UnidadOrganica::create([
+            'municipalidad_id' => $municipalidad->id,
+            'organo_id' => $organo->id,
+            'codigo' => '07.02',
+            'nombre' => 'Subgerencia de Turismo',
+            'naturaleza' => 'LINEA',
+            'tipo' => 'SUBGERENCIA',
+            'nivel_jerarquico' => 4,
+            'estado' => 'ACTIVA',
+        ]);
+
+        $this->assertSame('LINEA', $organo->fresh()->naturaleza);
+        $this->assertSame('GERENCIA', $organo->fresh()->tipo);
+        $this->assertSame('LINEA', $unidad->fresh()->naturaleza);
+        $this->assertSame('SUBGERENCIA', $unidad->fresh()->tipo);
+        $this->assertDatabaseHas('organos', ['id' => $organo->id, 'naturaleza' => 'LINEA', 'tipo' => 'GERENCIA']);
+        $this->assertDatabaseHas('unidades_organicas', ['id' => $unidad->id, 'naturaleza' => 'LINEA', 'tipo' => 'SUBGERENCIA']);
     }
 
     public function test_user_changes_are_recorded_with_before_and_after_values(): void

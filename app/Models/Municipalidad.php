@@ -58,4 +58,19 @@ class Municipalidad extends Model
     {
         return $this->hasMany(Instrumento::class, 'municipalidad_id');
     }
+
+    public function planesEstrategicos(): HasMany
+    {
+        return $this->hasMany(PlanEstrategico::class, 'municipalidad_id');
+    }
+
+    public function planesOperativos(): HasMany
+    {
+        return $this->hasMany(PlanOperativo::class, 'municipalidad_id');
+    }
+
+    public function indicadores(): HasMany
+    {
+        return $this->hasMany(Indicador::class, 'municipalidad_id');
+    }
 }

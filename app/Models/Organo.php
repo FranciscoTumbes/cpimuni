@@ -13,7 +13,7 @@ class Organo extends Model
 
     protected $table = 'organos';
 
-    protected $fillable = ['municipalidad_id', 'codigo', 'nombre', 'tipo', 'nivel_jerarquico', 'organo_padre_id', 'estado'];
+    protected $fillable = ['municipalidad_id', 'codigo', 'nombre', 'naturaleza', 'tipo', 'nivel_jerarquico', 'organo_padre_id', 'estado'];
 
     public function municipalidad(): BelongsTo { return $this->belongsTo(Municipalidad::class); }
     public function padre(): BelongsTo { return $this->belongsTo(self::class, 'organo_padre_id'); }

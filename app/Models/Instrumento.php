@@ -6,6 +6,7 @@ use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Instrumento extends Model
 {
@@ -44,5 +45,15 @@ class Instrumento extends Model
     public function documentos(): HasMany
     {
         return $this->hasMany(Documento::class);
+    }
+
+    public function planEstrategico(): HasOne
+    {
+        return $this->hasOne(PlanEstrategico::class);
+    }
+
+    public function planOperativo(): HasOne
+    {
+        return $this->hasOne(PlanOperativo::class);
     }
 }

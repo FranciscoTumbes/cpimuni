@@ -12,6 +12,7 @@
         @if($tipo === 'organos')
             <label>Código<input name="codigo" value="{{ old('codigo', $model->codigo) }}"></label>
             <label>Nombre<input name="nombre" required value="{{ old('nombre', $model->nombre) }}"></label>
+            <label>Naturaleza<input name="naturaleza" value="{{ old('naturaleza', $model->naturaleza) }}"></label>
             <label>Tipo<input name="tipo" value="{{ old('tipo', $model->tipo) }}"></label>
             <label>Nivel jerárquico<input type="number" name="nivel_jerarquico" min="0" value="{{ old('nivel_jerarquico', $model->nivel_jerarquico) }}"></label>
             <label>Órgano padre<select name="organo_padre_id"><option value="">Sin padre</option>@foreach($organos as $item)<option value="{{ $item->id }}" @selected(old('organo_padre_id', $model->organo_padre_id) == $item->id)>{{ $item->nombre }}</option>@endforeach</select></label>
@@ -20,6 +21,7 @@
             <label>Código<input name="codigo" value="{{ old('codigo', $model->codigo) }}"></label>
             <label>Nombre<input name="nombre" required value="{{ old('nombre', $model->nombre) }}"></label>
             <label>Abreviatura<input name="abreviatura" maxlength="30" value="{{ old('abreviatura', $model->abreviatura) }}"></label>
+            <label>Naturaleza<input name="naturaleza" value="{{ old('naturaleza', $model->naturaleza) }}"></label>
             <label>Tipo<input name="tipo" value="{{ old('tipo', $model->tipo) }}"></label>
             <label>Categoría institucional<select name="categoria_institucional"><option value="">Sin categoría</option>@foreach(['GERENCIA', 'SUBGERENCIA', 'OFICINA', 'ÁREA', 'OTRA'] as $categoria)<option value="{{ $categoria }}" @selected(old('categoria_institucional', $model->categoria_institucional) === $categoria)>{{ $categoria }}</option>@endforeach</select></label>
             <label>Órgano<select name="organo_id"><option value="">Sin órgano</option>@foreach($organos as $item)<option value="{{ $item->id }}" @selected(old('organo_id', $model->organo_id) == $item->id)>{{ $item->nombre }}</option>@endforeach</select></label>
