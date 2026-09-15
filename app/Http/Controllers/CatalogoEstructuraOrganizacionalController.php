@@ -13,14 +13,42 @@ class CatalogoEstructuraOrganizacionalController extends Controller
     {
         abort_unless($request->user()->rol?->nombre === 'SUPERADMIN', 403);
 
-        $items = CatalogoEstructuraOrganizacional::query()
+        $query = CatalogoEstructuraOrganizacional::query();
+
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('codigo', 'like', "%{$search}%")
+                  ->orWhere('nombre', 'like', "%{$search}%")
+                  ->orWhere('codigo_padre', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('categoria')) {
+            $query->where('categoria', $request->input('categoria'));
+        }
+
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->input('estado'));
+        }
+
+        $items = $query
             ->orderBy('categoria')
             ->orderBy('orden')
             ->orderBy('codigo')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
+
+        $stats = [
+            'total' => CatalogoEstructuraOrganizacional::count(),
+            'activos' => CatalogoEstructuraOrganizacional::where('estado', 'ACTIVO')->count(),
+            'inactivos' => CatalogoEstructuraOrganizacional::where('estado', 'INACTIVO')->count(),
+            'niveles' => CatalogoEstructuraOrganizacional::distinct('nivel')->count('nivel'),
+        ];
 
         return view('admin.catalogos.estructura-organizacional', [
             'items' => $items,
+            'stats' => $stats,
         ]);
     }
 

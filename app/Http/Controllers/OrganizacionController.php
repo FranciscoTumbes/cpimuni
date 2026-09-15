@@ -18,52 +18,113 @@ class OrganizacionController extends Controller
 {
     public function index(Request $request): View
     {
-        $municipalidadId = $request->user()->municipalidad_id;
-        $scope = fn ($query) => $request->user()->rol?->nombre === 'SUPERADMIN' ? $query : $query->where('municipalidad_id', $municipalidadId);
+        $isSuperAdmin = $request->user()->rol?->nombre === 'SUPERADMIN';
+        $selectedMuniId = $request->input('municipalidad_id');
+
+        $scope = function ($query) use ($isSuperAdmin, $selectedMuniId, $request) {
+            if (!$isSuperAdmin) {
+                return $query->where('municipalidad_id', $request->user()->municipalidad_id);
+            }
+            if ($selectedMuniId) {
+                return $query->where('municipalidad_id', $selectedMuniId);
+            }
+            return $query;
+        };
+
+        $organos = $scope(Organo::query())->with(['padre', 'municipalidad'])->orderBy('nombre')->get();
+        $unidades = $scope(UnidadOrganica::query())->with(['organo', 'padre', 'municipalidad'])->orderBy('nombre')->get();
+        $puestos = $scope(Puesto::query())->with(['unidad', 'municipalidad'])->orderBy('denominacion')->get();
+        $funciones = $scope(Funcion::query())->with(['unidad', 'puesto', 'municipalidad'])->orderBy('codigo')->get();
+
+        $municipalidades = Municipalidad::orderBy('nombre')->get();
+        $municipalidadActual = $selectedMuniId 
+            ? Municipalidad::find($selectedMuniId) 
+            : $request->user()->municipalidad;
+
         return view('organizacion.index', [
-            'organos' => $scope(Organo::query())->with('padre')->orderBy('nombre')->get(),
-            'unidades' => $scope(UnidadOrganica::query())->with('organo', 'padre')->orderBy('nombre')->get(),
-            'puestos' => $scope(Puesto::query())->with('unidad')->orderBy('denominacion')->get(),
-            'funciones' => $scope(Funcion::query())->with('unidad', 'puesto')->orderBy('codigo')->get(),
-            'municipalidades' => Municipalidad::orderBy('nombre')->get(),
-            'municipalidadActual' => $request->user()->municipalidad,
+            'organos' => $organos,
+            'unidades' => $unidades,
+            'puestos' => $puestos,
+            'funciones' => $funciones,
+            'municipalidades' => $municipalidades,
+            'municipalidadActual' => $municipalidadActual,
+            'selectedMuniId' => $selectedMuniId,
         ]);
     }
 
     public function storeOrgano(Request $request): RedirectResponse
     {
         $municipalidadId = $this->municipalidadId($request, $request->input('municipalidad_id'));
-        $data = $request->validate(['municipalidad_id' => ['nullable', 'exists:municipalidades,id'], 'codigo' => ['nullable', 'string', 'max:50'], 'nombre' => ['required', 'string', 'max:255'], 'naturaleza' => ['nullable', 'string', 'max:100'], 'tipo' => ['nullable', 'string', 'max:100'], 'nivel_jerarquico' => ['nullable', 'integer'], 'organo_padre_id' => ['nullable', $this->belongsToMunicipality('organos', $municipalidadId)]]);
+        $data = $request->validate([
+            'municipalidad_id' => ['nullable', 'exists:municipalidades,id'],
+            'codigo' => ['nullable', 'string', 'max:50'],
+            'nombre' => ['required', 'string', 'max:255'],
+            'naturaleza' => ['nullable', 'string', 'max:100'],
+            'tipo' => ['nullable', 'string', 'max:100'],
+            'nivel_jerarquico' => ['nullable', 'integer'],
+            'organo_padre_id' => ['nullable', $this->belongsToMunicipality('organos', $municipalidadId)]
+        ]);
         $data['municipalidad_id'] = $municipalidadId;
         Organo::create($data);
-        return back()->with('success', 'Órgano registrado.');
+        return back()->with('success', 'Órgano registrado con éxito.')->with('active_tab', 'organos');
     }
 
     public function storeUnidad(Request $request): RedirectResponse
     {
         $municipalidadId = $this->municipalidadId($request, $request->input('municipalidad_id'));
-        $data = $request->validate(['municipalidad_id' => ['nullable', 'exists:municipalidades,id'], 'organo_id' => ['nullable', $this->belongsToMunicipality('organos', $municipalidadId)], 'codigo' => ['nullable', 'string', 'max:50'], 'nombre' => ['required', 'string', 'max:255'], 'abreviatura' => ['nullable', 'string', 'max:30'], 'naturaleza' => ['nullable', 'string', 'max:100'], 'tipo' => ['nullable', 'string', 'max:100'], 'categoria_institucional' => ['nullable', 'string', 'max:50'], 'nivel_jerarquico' => ['nullable', 'integer', 'min:0'], 'orden' => ['nullable', 'integer', 'min:0'], 'unidad_padre_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)], 'finalidad' => ['nullable', 'string'], 'descripcion' => ['nullable', 'string']]);
+        $data = $request->validate([
+            'municipalidad_id' => ['nullable', 'exists:municipalidades,id'],
+            'organo_id' => ['nullable', $this->belongsToMunicipality('organos', $municipalidadId)],
+            'codigo' => ['nullable', 'string', 'max:50'],
+            'nombre' => ['required', 'string', 'max:255'],
+            'abreviatura' => ['nullable', 'string', 'max:30'],
+            'naturaleza' => ['nullable', 'string', 'max:100'],
+            'tipo' => ['nullable', 'string', 'max:100'],
+            'categoria_institucional' => ['nullable', 'string', 'max:50'],
+            'nivel_jerarquico' => ['nullable', 'integer', 'min:0'],
+            'orden' => ['nullable', 'integer', 'min:0'],
+            'unidad_padre_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)],
+            'finalidad' => ['nullable', 'string'],
+            'descripcion' => ['nullable', 'string']
+        ]);
         $data['municipalidad_id'] = $municipalidadId;
         UnidadOrganica::create($data);
-        return back()->with('success', 'Unidad orgánica registrada.');
+        return back()->with('success', 'Unidad orgánica registrada con éxito.')->with('active_tab', 'unidades');
     }
 
     public function storePuesto(Request $request): RedirectResponse
     {
         $municipalidadId = $this->municipalidadId($request, $request->input('municipalidad_id'));
-        $data = $request->validate(['municipalidad_id' => ['nullable', 'exists:municipalidades,id'], 'unidad_organica_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)], 'codigo' => ['nullable', 'string', 'max:50'], 'denominacion' => ['required', 'string', 'max:255'], 'nivel' => ['nullable', 'string', 'max:100'], 'finalidad' => ['nullable', 'string']]);
+        $data = $request->validate([
+            'municipalidad_id' => ['nullable', 'exists:municipalidades,id'],
+            'unidad_organica_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)],
+            'codigo' => ['nullable', 'string', 'max:50'],
+            'denominacion' => ['required', 'string', 'max:255'],
+            'nivel' => ['nullable', 'string', 'max:100'],
+            'finalidad' => ['nullable', 'string']
+        ]);
         $data['municipalidad_id'] = $municipalidadId;
         Puesto::create($data);
-        return back()->with('success', 'Puesto registrado.');
+        return back()->with('success', 'Puesto registrado con éxito.')->with('active_tab', 'puestos');
     }
 
     public function storeFuncion(Request $request): RedirectResponse
     {
         $municipalidadId = $this->municipalidadId($request, $request->input('municipalidad_id'));
-        $data = $request->validate(['municipalidad_id' => ['nullable', 'exists:municipalidades,id'], 'unidad_organica_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)], 'puesto_id' => ['nullable', $this->belongsToMunicipality('puestos', $municipalidadId)], 'codigo' => ['nullable', 'string', 'max:50'], 'descripcion' => ['required', 'string'], 'tipo' => ['nullable', 'string', 'max:100'], 'fuente' => ['nullable', 'string', 'max:100'], 'fecha_inicio' => ['nullable', 'date'], 'fecha_fin' => ['nullable', 'date', 'after_or_equal:fecha_inicio']]);
+        $data = $request->validate([
+            'municipalidad_id' => ['nullable', 'exists:municipalidades,id'],
+            'unidad_organica_id' => ['nullable', $this->belongsToMunicipality('unidades_organicas', $municipalidadId)],
+            'puesto_id' => ['nullable', $this->belongsToMunicipality('puestos', $municipalidadId)],
+            'codigo' => ['nullable', 'string', 'max:50'],
+            'descripcion' => ['required', 'string'],
+            'tipo' => ['nullable', 'string', 'max:100'],
+            'fuente' => ['nullable', 'string', 'max:100'],
+            'fecha_inicio' => ['nullable', 'date'],
+            'fecha_fin' => ['nullable', 'date', 'after_or_equal:fecha_inicio']
+        ]);
         $data['municipalidad_id'] = $municipalidadId;
         Funcion::create($data);
-        return back()->with('success', 'Función registrada.');
+        return back()->with('success', 'Función registrada con éxito.')->with('active_tab', 'funciones');
     }
 
     public function edit(Request $request, string $tipo, int $id): View
@@ -86,7 +147,7 @@ class OrganizacionController extends Controller
         $data = $this->validatedData($request, $tipo, $municipalidadId, $model->id);
         $this->validateHierarchy($tipo, $model, $data);
         $model->update($data);
-        return redirect()->route('organizacion.index')->with('success', 'Registro organizacional actualizado.');
+        return redirect()->route('organizacion.index', ['tab' => $tipo])->with('success', 'Registro organizacional actualizado con éxito.')->with('active_tab', $tipo);
     }
 
     public function destroy(Request $request, string $tipo, int $id): RedirectResponse
@@ -94,7 +155,7 @@ class OrganizacionController extends Controller
         $model = $this->findModel($request, $tipo, $id);
         $this->ensureCanDeactivate($tipo, $model);
         $model->update(['estado' => $this->inactiveState($tipo)]);
-        return back()->with('success', 'Registro organizacional dado de baja lógica.');
+        return back()->with('success', 'Registro organizacional dado de baja lógica.')->with('active_tab', $tipo);
     }
 
     private function findModel(Request $request, string $tipo, int $id): Model
