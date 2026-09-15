@@ -76,8 +76,23 @@
         .fab,
         .fa-solid,
         .fa-regular,
-        .fa-brands {
+        .fa-brands,
+        .fa > svg,
+        .fas > svg,
+        .far > svg,
+        .fab > svg,
+        .fa-solid > svg,
+        .fa-regular > svg,
+        .fa-brands > svg {
             font-size: inherit;
+        }
+
+        svg {
+            display: inline-block;
+            vertical-align: middle;
+            flex-shrink: 0;
+            max-width: 100%;
+            max-height: 100%;
         }
 
         /* =========================================================
@@ -186,40 +201,55 @@
         .quick-icon i,
         .logout-button i,
         .button i,
-        .icon-button i {
+        .icon-button i,
+        .menu-item svg,
+        .brand-icon svg,
+        .stat-icon svg,
+        .quick-icon svg,
+        .logout-button svg,
+        .button svg,
+        .icon-button svg {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             text-align: center;
+            flex: 0 0 auto;
         }
 
-        .menu-item i {
+        .menu-item i,
+        .menu-item svg {
             width: 18px;
             height: 18px;
             font-size: var(--icon-sm);
         }
 
-        .brand-icon i {
+        .brand-icon i,
+        .brand-icon svg {
             width: 22px;
             height: 22px;
             font-size: var(--icon-lg);
         }
 
-        .stat-icon i {
+        .stat-icon i,
+        .stat-icon svg {
             width: 22px;
             height: 22px;
             font-size: var(--icon-md);
         }
 
-        .quick-icon i {
+        .quick-icon i,
+        .quick-icon svg {
             width: 16px;
             height: 16px;
             font-size: var(--icon-sm);
         }
 
         .logout-button i,
+        .logout-button svg,
         .button i,
-        .icon-button i {
+        .button svg,
+        .icon-button i,
+        .icon-button svg {
             width: 16px;
             height: 16px;
             font-size: var(--icon-sm);
